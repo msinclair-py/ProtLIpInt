@@ -87,7 +87,7 @@ class ModelAnalyzer(object):
 
             vis, vis_dict = self._layer_attr_logic(attr, delta, inputs, tgt_idx, additional_forward_args) #not a list yet
             vis_list.append(vis) ###appending individual VisualizationDataRecord
-        _visualize_layer_attr_logic(vis_list) #vis_list is a  list!
+        self._visualize_layer_attr_logic(vis_list) #vis_list is a  list!
 
         if normed and (attribute in ["saliency", "integrated_gradients"]):
             return attr.norm(p=2, dim=-1).detach().cpu().numpy()  #B,L
