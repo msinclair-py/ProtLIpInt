@@ -42,7 +42,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         return input_reformats, target_reformats
 
 if __name__ == "__main__":
-    from main import get_args
+    from train import get_args
     hparam = get_args()
     dataset = load_dataset("yarongef/human_proteome_triplets", cache_dir=hparam.load_data_directory)
 
