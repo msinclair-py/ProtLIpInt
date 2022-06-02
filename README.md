@@ -9,3 +9,16 @@
 
 ## obtain_training_data.ipynb
 ### This a jupyter notebook for testing the training_data.py script
+
+## train.py
+### This is the main ML training script. Callbacks and Trainer are defined.
+
+## dataset.py
+### This is a hugginging face dataset (and more; WIP) and Pytorch Dataset script.
+
+## model.py
+### Ths is a Pytorch Lightning Module and Datamodule script.
+
+## utils.py
+### This is a script for prediction, visualization and more.
+
