@@ -20,6 +20,7 @@ import argparse
 from typing import *
 from torchcrf import CRF
 import BertNER
+import BertNERTokenizer
 
 #https://github.com/HelloJocelynLu/t5chem/blob/main/t5chem/archived/MultiTask.py for more info
 
@@ -95,7 +96,7 @@ class ProtBertClassifier(pl.LightningModule):
         self.encoder_features = self.z_dim
 
         # Tokenizer
-        self.tokenizer = BertTokenizer.from_pretrained(self.model_name, do_lower_case=False, return_tensors="pt", cache_dir=self.hparam.load_model_directory)
+        self.tokenizer = BertNERTokenizer.BertNERTokenizer(self.ner_config)
 
         # Classification head
         self.head = nn.Sequential(
