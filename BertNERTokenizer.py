@@ -25,5 +25,7 @@ class BertNERTokenizer(torch.nn.Module):
         super().__init__()
         self.ner_config
         
-    def batch_encode_plus(self, List[]
+    def batch_encode_plus(self, inputs: torch.Tensor, targets: torch.LongTensor):
+        #inputs: B,residue_length; targets: B,residue_length
+        pass
     
