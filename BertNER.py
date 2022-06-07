@@ -90,6 +90,27 @@ class BertNER(torch.nn.Module):
        self.bert_model = bert_model
        embeddings = BertEmbeddingsNER(**ner_config) #Overwrite BertModel's embedding
        self.bert_model.embeddings = embeddings #Overwrite BertModel's embedding
+       
+    def forward(
+        self,
+        input_ids: Optional[torch.Tensor] = None,
+        attention_mask: Optional[torch.Tensor] = None,
+        token_type_ids: Optional[torch.Tensor] = None,
+        position_ids: Optional[torch.Tensor] = None,
+        head_mask: Optional[torch.Tensor] = None,
+        inputs_embeds: Optional[torch.Tensor] = None,
+        encoder_hidden_states: Optional[torch.Tensor] = None,
+        encoder_attention_mask: Optional[torch.Tensor] = None,
+        past_key_values: Optional[List[torch.FloatTensor]] = None,
+        use_cache: Optional[bool] = None,
+        output_attentions: Optional[bool] = None,
+        output_hidden_states: Optional[bool] = None,
+        return_dict: Optional[bool] = None,
+    ) -> Union[Tuple[torch.Tensor], BaseModelOutputWithPoolingAndCrossAttentions]:      
+        return self.bert_model(input_ids, attention_mask, token_type_ids, position_ids, head_mask, inputs_embeds,
+                               encoder_hidden_states, encoder_attention_mask, 
+                              past_key_values, use_cache, output_attentions, output_hidden_states, return_dict)
+                         
                              
 
     
