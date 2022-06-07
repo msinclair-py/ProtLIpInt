@@ -88,7 +88,8 @@ class ProtBertClassifier(pl.LightningModule):
         WIP!"""
         #model = locals()["model"] if locals()["model"] and isinstance(locals()["model"], BertModel) else BertModel.from_pretrained(self.model_name, cache_dir=self.hparam.load_model_directory)
         model = BertModel.from_pretrained(self.model_name, cache_dir=self.hparam.load_model_directory)
- 
+        model = BertNER.BertNER(model, self.ner_config)
+        
         self.model = model
         self.encoder_features = self.z_dim
 
