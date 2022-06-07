@@ -82,7 +82,9 @@ class ProtBertClassifier(pl.LightningModule):
         wandb.watch(self.head)
 
     def __build_model_ner(self) -> None:
-        """ Init BERT model + tokenizer + classification head."""
+        """ Init BERT model + tokenizer + classification head.
+        Model and Tokenizer has to be rewritten! 
+        WIP!"""
         #model = locals()["model"] if locals()["model"] and isinstance(locals()["model"], BertModel) else BertModel.from_pretrained(self.model_name, cache_dir=self.hparam.load_model_directory)
         model = BertModel.from_pretrained(self.model_name, cache_dir=self.hparam.load_model_directory)
  
