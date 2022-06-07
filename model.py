@@ -19,6 +19,7 @@ import dataset as dl
 import argparse
 from typing import *
 from torchcrf import CRF
+import BertNER
 
 #https://github.com/HelloJocelynLu/t5chem/blob/main/t5chem/archived/MultiTask.py for more info
 
