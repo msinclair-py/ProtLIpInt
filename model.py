@@ -42,6 +42,7 @@ class ProtBertClassifier(pl.LightningModule):
     def __init__(self, hparam: argparse.ArgumentParser) -> None:
         super(ProtBertClassifier, self).__init__()
         self.hparam = hparam
+        self.ner_config = self.hparam.ner_config
         self.batch_size = self.hparam.batch_size
         self.model_name = self.hparam.model_name #"Rostlab/prot_bert_bfd"  
         self.ner = self.hparam.ner #bool
