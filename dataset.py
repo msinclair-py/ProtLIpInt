@@ -41,6 +41,38 @@ class SequenceDataset(torch.utils.data.Dataset):
         target_reformats = {"labels": self.targets[idx]}
         return input_reformats, target_reformats
 
+class NERSequenceDataset(torch.utils.data.Dataset):
+    """Protein sequence dataset
+    WIP!"""
+    def __init__(self, inputs: Dict) -> torch.utils.data.Dataset:
+        super().__init__()
+        self.inputs, self.targets = self.process_inputs(inputs) #proper inputs and made
+        
+    @staticmethod
+    def process_inputs(inputs: Dict):
+        nframes = len(inputs)
+        
+        return inputs_formatted, targets
+        
+    def __len__(self):
+        return len(self.inputs) #train length...
+
+    def __getitem__(self, idx):
+        input_ids = self.inputs["input_ids"][idx] #B, L
+        token_type_ids = self.inputs["token_type_ids"][idx] #B, L
+        attention_mask = self.inputs["attention_mask"][idx] #B, L
+        input_reformats = {'input_ids': input_ids, 'token_type_ids': token_type_ids, 'attention_mask': attention_mask}
+        target_reformats = {"labels": self.targets[idx]}
+        return input_reformats, target_reformats
+
+    @classmethod
+    def from_json(cls, filename: str):
+        assert os.path.split(filename)[-1].split(".")[-1] == "json", "not a json file!" #get extension
+        with open(filename, "r") as f:
+            data = json.load(filename)
+        assert isinstance(data, dict), "wrong data format!"
+        return cls(data)    
+    
 if __name__ == "__main__":
     from train import get_args
     hparam = get_args()
