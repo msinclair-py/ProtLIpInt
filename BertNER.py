@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pdb
 from bertviz.bertviz import head_view
 from transformers import BertTokenizer, BertModel, AutoModel, AutoTokenizer, BertConfig, BertForSequenceClassification
+from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAttentions
+from packaging import version
 import re, os, tqdm, requests
 from datasets import load_dataset
 import torch.nn as nn
@@ -35,7 +37,7 @@ class BertEmbeddingsNER(nn.Module):
         self.dropout = nn.Dropout(ner_config.get("hidden_dropout_prob"))
         # position_ids (1, len position emb) is contiguous in memory and exported when serialized
         self.position_embedding_type = getattr(ner_config, "position_embedding_type", "absolute")
-        self.register_buffer("position_ids", torch.arange(ner_config.get("max_position_embeddings").expand((1, -1)))
+        self.register_buffer("position_ids", torch.arange(ner_config.get("max_position_embeddings")).expand((1, -1)))
         if version.parse(torch.__version__) > version.parse("1.6.0"):
             self.register_buffer(
                 "token_type_ids",
