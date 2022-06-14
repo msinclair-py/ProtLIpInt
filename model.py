@@ -122,7 +122,7 @@ class ProtBertClassifier(pl.LightningModule):
 
     def __build_loss_ner(self):
         """ Initializes the loss function/s. """
-        self._loss = CRF(num_tags=, batch_first=True)
+        self._loss = CRF(num_tags=self.num_labels, batch_first=True)
 
     def compute_logits_CURL(self, z_a, z_pos):
         """
@@ -487,7 +487,7 @@ class ProtBertClassifier(pl.LightningModule):
         wandb.log({"PR": wandb.plot.pr_curve(ground_truth, predictions)}) #Needs (B/BL,num_labels)
   
     @staticmethod
-    def plot_manifold(hparam: argparser.ArgumentParser, logits_: np.ndarray):
+    def plot_manifold(hparam: argparse.ArgumentParser, logits_: np.ndarray):
         #WIP for PCA or UMAP or MDS
         #summary is 
         import sklearn.manifold
@@ -502,7 +502,7 @@ class ProtBertClassifier(pl.LightningModule):
         wandb.log({"TSNE Plot": table})
 
     @staticmethod
-    def plot_ngl(hparam: argparser.ArgumentParser):
+    def plot_ngl(hparam: argparse.ArgumentParser):
         #WIP for filename!
         import nglview as nv
         import MDAnalysis as mda
