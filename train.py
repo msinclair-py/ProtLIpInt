@@ -28,7 +28,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Training')
 
     #Model related
-    parser.add_argument('--load-model-directory', "-dirm", type=str, default="/Scr/hyunpark/DL_Sequence_Collab/output", help='This is where model is/will be located...')  
+    parser.add_argument('--load-model-directory', "-dirm", type=str, default="/Scr/hyunpark/DL_Sequence_Collab/pfcrt_projects/output", help='This is where model is/will be located...')  
     parser.add_argument('--load-model-checkpoint', "-ckpt", type=str, default=None, help='which checkpoint...')  
     parser.add_argument('--model-name', type=str, default='Rostlab/prot_bert', help='HUGGINGFACE Backbone model name card')
 
@@ -38,10 +38,10 @@ def get_args():
 
     #Optimizer related
     parser.add_argument('--max-epochs', default=60, type=int, help='number of epochs max')
-    parser.add_argument('--min-epochs', default=-1, type=int, help='number of epochs min')
+    parser.add_argument('--min-epochs', default=1, type=int, help='number of epochs min')
     parser.add_argument('--batch-size', '-b', default=2048, type=int, help='batch size')
     parser.add_argument('--learning-rate', '-lr', default=1e-3, type=float, help='learning rate')
-    parser.add_argument('--ngpus', type=int, default=1, help='Number of GPUs, -1 use all available. Use CUDA_VISIBLE_DEVICES=1, to decide gpus')
+    parser.add_argument('--ngpus', type=int, default=-1, help='Number of GPUs, -1 use all available. Use CUDA_VISIBLE_DEVICES=1, to decide gpus')
     parser.add_argument('--num-nodes', type=int, default=1, help='Number of nodes')
     parser.add_argument('--warm-up-split', type=int, default=5, help='warmup times')
     parser.add_argument('--scheduler', type=str, default="cosine", help='scheduler type')
@@ -50,11 +50,11 @@ def get_args():
     #Misc.
     parser.add_argument('--seed', type=int, default=42, help='seeding number')
     parser.add_argument('--precision', type=int, default=32, choices=[16, 32], help='Floating point precision')
-    parser.add_argument('--monitor', type=str, default="val_acc_mean", help='metric to watch')
+    parser.add_argument('--monitor', type=str, default="val_loss_mean", help='metric to watch')
     parser.add_argument('--loss', '-l', type=str, default="classification", choices=['classification', 'contrastive', 'ner'], help='loss for training')
     parser.add_argument('--save_top_k', type=int, default="5", help='num of models to save')
     parser.add_argument('--patience', type=int, default=10, help='patience for stopping')
-    parser.add_argument('--metric_mode', type=str, default="max", help='mode of monitor')
+    parser.add_argument('--metric_mode', type=str, default="min", help='mode of monitor')
     parser.add_argument('--distributed-backend', default='ddp', help='Distributed backend: dp, ddp, ddp2')
     parser.add_argument('--num-workers', type=int, default=4, help='Number of workers for data prefetch')
     parser.add_argument('--amp-backend', type=str, default="native", help='Torch vs NVIDIA AMP')
@@ -94,7 +94,7 @@ def _main():
     #  -------------------------------
     # initialize Model Checkpoint Saver
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
-    filename="{epoch}-{train_acc_mean:.2f}-{val_acc_mean:.2f}",
+    filename="{epoch}-{train_loss_mean:.2f}-{val_loss_mean:.2f}",
     save_top_k=hparams.save_top_k,
     verbose=True,
     monitor=hparams.monitor,
@@ -129,7 +129,7 @@ def _main():
     #tb_logger = pl.loggers.TensorBoardLogger("tb_logs", name="my_model")
 
     trainer = pl.Trainer(
-    accelerator="ddp",
+    accelerator=hparams.accelerator,
     gpus=hparams.ngpus,
     max_epochs=hparams.max_epochs,
     min_epochs=hparams.min_epochs,
