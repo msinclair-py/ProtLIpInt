@@ -81,7 +81,7 @@ class ProtBertClassifier(pl.LightningModule):
         if self.hparam.loss == "contrastive": 
             self.make_hook()
 
-        wandb.init(project="DL_Sequence_Collab", entity="hyunp2")
+        wandb.init(project="DL_Sequence_Collab", entity="hyunp2", group="DDP_runs")
         wandb.watch(self.head)
 
     def __build_model_ner(self) -> None:
@@ -342,6 +342,8 @@ class ProtBertClassifier(pl.LightningModule):
 #         train_acc_mean = self.metric_acc.compute()
 
         self.log("train_loss_mean", train_loss_mean, prog_bar=True)
+        self.log("epoch", self.current_epoch)
+
 #         self.log("train_acc_mean", train_acc_mean, prog_bar=True)
 
 #         tqdm_dict = {"epoch_train_loss": train_loss_mean, "epoch_train_acc": train_acc_mean}
@@ -579,3 +581,4 @@ class ProtBertClassifier(pl.LightningModule):
             batch_size=self.hparam.batch_size,
             num_workers=self.hparam.num_workers,
         )
+    
