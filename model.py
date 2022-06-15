@@ -474,7 +474,7 @@ class ProtBertClassifier(pl.LightningModule):
         b = ground_truth.shape[0]
         predictions = torch.cat([x['predictions'] for x in outputs[0]], dim=0).contiguous().view(b,-1).detach().cpu().numpy() #catted results ... weird outputs indexing (B, num_labels) or (BL, num_labels)
         predictions_label = predictions.argmax(axis = -1) #(B,) or (BL,)
-        class_names = np.arange(len(self.num_labels)).tolist() #(num_labels)
+        class_names = np.arange(self.num_labels).tolist() #(num_labels)
         logits = torch.cat([x['last_layer'] for x in outputs[0]], dim=0).contiguous().view(b,-1).detach().cpu().numpy() #catted results (B,reduced_dim)
         logits_ = logits #(B,zdim) or (B,L,zdim)
         if self.ner: logits_ = logits_[:,0,:] #to (B,zdim) from [CLS]
@@ -487,7 +487,7 @@ class ProtBertClassifier(pl.LightningModule):
     def plot_confusion(ground_truth: torch.Tensor, predictions: torch.Tensor, class_names: np.ndarray=np.array([0,1])):
         cm = wandb.plot.confusion_matrix(
             y_true=ground_truth,
-            preds=predictions_label,
+            preds=predictions,
             class_names=class_names) 
         wandb.log({"Confusion Matrix": cm}) #Needs (B, )
         wandb.log({"ROC": wandb.plot.roc_curve(ground_truth, predictions)}) #Needs (B/BL,num_labels)
@@ -581,4 +581,3 @@ class ProtBertClassifier(pl.LightningModule):
             batch_size=self.hparam.batch_size,
             num_workers=self.hparam.num_workers,
         )
-    
