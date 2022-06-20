@@ -377,9 +377,9 @@ def display_hack():
 
 n_workers = os.cpu_count()
 
-params = zip(itertools.repeat(lipid_analysis),
+params = list(zip(itertools.repeat(lipid_analysis),
              itertools.repeat(n_workers),
-             range(n_workers))
+             range(n_workers)))
 
 # This is REQUIRED in order for multiprocessing to work
 if __name__ == "__main__":
