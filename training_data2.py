@@ -359,7 +359,8 @@ def to_json(data):
 ###-------------------------------------------------###
 
 filepath = '/Scr/msincla01/YidC_Membrane_Simulation/Equilibrium_Sims/Replicas/Top6'
-dcds = [f'{filepath}/{system}_S{n}.dcd' for n in range(1,10)]
+#dcds = [f'{filepath}/{system}_S{n}.dcd' for n in range(1,10)]
+dcds = f'{filepath}/{system}_S4.dcd'
 
 u = mda.Universe(f'{filepath}/{system}.psf',
                  dcds)
@@ -392,49 +393,48 @@ params = list(zip(itertools.repeat(lipid_analysis),
 
 
 # This is REQUIRED in order for multiprocessing to work
-if __name__ == "__main__":
 #	pool = Pool()
 #	analyses = pool.map(lipid_analysis,n_workers)
 #	pool = Pool(processes=n_workers, initializer=display_hack)
 #	analyses = pool.starmap(parallelize_run, params)
 #	pool.close()
 
-	import ray
-	ray.init()
+import ray
+ray.init()
 
-	@ray.remote
-	def parallelize_run(analysis): #, n_workers, worker_id):
-		analysis.run() #start=worker_id, step=n_workers, verbose=not worker_id)
-		return analysis
+@ray.remote
+def parallelize_run(analysis): #, n_workers, worker_id):
+	analysis.run() #start=worker_id, step=n_workers, verbose=not worker_id)
+	return analysis
 
-	futures = [parallelize_run.remote(par[0]) for par in params]
-	print(ray.get(futures))
+futures = [parallelize_run.remote(par[0]) for par in params]
+print(ray.get(futures))
 
-    # dump data into files for checkpointing purposes
-	n_frames = [partial_analysis.n_frames for partial_analysis in analyses]
-	data = [partial_analysis.interactions for partial_analysis in analyses]
+# dump data into files for checkpointing purposes
+n_frames = [partial_analysis.n_frames for partial_analysis in analyses]
+data = [partial_analysis.interactions for partial_analysis in analyses]
+
+if not os.path.exists('datafiles/'):
+	os.mkdir('datafiles/')
 	
-	if not os.path.exists('datafiles/'):
-		os.mkdir('datafiles/')
-		
-	print(f'Writing out {n_workers} data files.')
-	for i, d in enumerate(data):
-		with open(f'datafiles/raw_interactions{i}.json', 'w') as f:
-			json.dump(to_json(d), f)
+print(f'Writing out {n_workers} data files.')
+for i, d in enumerate(data):
+	with open(f'datafiles/raw_interactions{i}.json', 'w') as f:
+		json.dump(to_json(d), f)
 
-    # combine all data into master checkpoint file, clean up files
-	print('Writing out master data file and cleaning up` datafiles/`')
-	master = merge_data(n_workers)
-	with open(f'datafiles/raw_data_{system}.json', 'w') as f:
-		json.dump(to_json(master), f)
-		
-	for i in range(n_workers):
-		os.remove(f'datafiles/raw_interactions{i}.json')
+# combine all data into master checkpoint file, clean up files
+print('Writing out master data file and cleaning up` datafiles/`')
+master = merge_data(n_workers)
+with open(f'datafiles/raw_data_{system}.json', 'w') as f:
+	json.dump(to_json(master), f)
+	
+for i in range(n_workers):
+	os.remove(f'datafiles/raw_interactions{i}.json')
 
-    # smooth and then obtain coefficients for entire dataset
-	print('Smoothing frame data, fitting curves and calculating coefficients')
-	coeffs = get_coeffs(master)
-	with open(f'datafiles/{system}_coeffs.json', 'w') as f:
-		json.dump(to_json(coeffs), f)
+# smooth and then obtain coefficients for entire dataset
+print('Smoothing frame data, fitting curves and calculating coefficients')
+coeffs = get_coeffs(master)
+with open(f'datafiles/{system}_coeffs.json', 'w') as f:
+	json.dump(to_json(coeffs), f)
 
 
