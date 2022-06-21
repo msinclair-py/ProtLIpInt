@@ -4,6 +4,7 @@ from MDAnalysis.analysis.base import AnalysisBase
 import numpy as np
 from ray.util.multiprocessing import Pool
 import itertools
+import glob
 import re
 import ray
 import sys
@@ -19,8 +20,8 @@ import collections
 parser = argparse.ArgumentParser(description='')
 
 parser.add_argument('filepath', help='Filepath to simulation files.')
-parser.add_argument('system', help='System name (e.g. system1.dcd, system2.dcd')
-parser.add_argument('-o', '--output', dest='output', default='./', 
+parser.add_argument('system', help='System name (e.g. system.psf, system2.dcd)')
+parser.add_argument('-o', '--output', dest='output', default=os.getcwd(), 
 					help='Output destination for data storage. Defaults to current directory.')
 parser.add_argument('-c', '--cutoff', dest='cutoff', default='3.4',
 					help='Min. distance for contact calculations (A)')
@@ -32,6 +33,8 @@ parser.add_argument('-d', '--dcd', dest='dcd', default=False,
 					help='Alternate system name if different for dcd files')
 parser.add_argument('-e', '--seg', dest='seg', default='MEMB',
 					help='Segname of membrane seleciton. Defaults to MEMB from CHARMM-GUI')
+parser.add_argument('-p', '--cpus', dest='cpu', default=os.cpu_count()*3/4,
+					help='Number of cpu cores for calculations. Defaults to 75% ncpus.')
 
 args = parser.parse_args()
 
@@ -42,7 +45,8 @@ contact_distance = float(args.cutoff)
 smoothing_cutoff = int(args.smooth)
 minimum_bound = int(args.min)
 dcd = args.dcd if args.dcd else system
-segname = args.segname
+segname = args.seg
+n_workers = int(args.cpu)
 
 # build custom data structure
 class LipidContacts(AnalysisBase):
@@ -313,7 +317,7 @@ def get_binding_profile(pairdata, smoothing_cutoff = 3):
 
 def merge_data(nJSONs):
     for i in range(nJSONs):
-        with open(ff'{outpath}/datafiles/raw_interactions{i}.json', 'r') as infile:
+        with open(f'{outpath}/datafiles/raw_interactions{i}.json', 'r') as infile:
             data = json.load(infile)
 
         # this means we are appending data to the final data structure
@@ -361,8 +365,9 @@ def to_json(data):
 
 
 def natural_sort(l): 
-    convert = lambda text: int(text) if text.isdigit() else text.lower()
-	    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+	convert = lambda text: int(text) if text.isdigit() else text.lower()
+	alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+	return sorted(l, key=alphanum_key)
 
 
 ###-------------------------------------------------###
@@ -370,10 +375,7 @@ def natural_sort(l):
 ###-------------------------------------------------###
 
 psf = f'{filepath}/{system}.psf'
-dcds = [f'{filepath}/{dcd}{n}.dcd' for n in range(1,10)]
-
-dcds = natural_sort(dcds)
-
+dcds = natural_sort(glob.glob(f'{filepath}/{dcd}*.dcd'))
 u = mda.Universe(psf, dcds)
 
 protein = u.select_atoms('protein')
@@ -391,24 +393,9 @@ def display_hack():
     sys.stdout.write(' ')
     sys.stdout.flush()
 
-n_workers = os.cpu_count()
-
 params = list(zip(itertools.repeat(lipid_analysis),
              itertools.repeat(n_workers),
              range(n_workers)))
-
-
-#params = list(zip([lipid_analysis for _ in range(n_workers)],
-#             itertools.repeat(n_workers),
-#             range(n_workers)))
-
-
-# This is REQUIRED in order for multiprocessing to work
-#	pool = Pool()
-#	analyses = pool.map(lipid_analysis,n_workers)
-#	pool = Pool(processes=n_workers, initializer=display_hack)
-#	analyses = pool.starmap(parallelize_run, params)
-#	pool.close()
 
 ray.init()
 
