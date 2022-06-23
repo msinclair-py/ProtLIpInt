@@ -385,10 +385,6 @@ lipid_analysis = LipidContacts(protein, lipids, cutoff = contact_distance,
                                 smoothing_cutoff = smoothing_cutoff, 
                                 min_bind = minimum_bound)
 
-def parallelize_run(analysis, n_workers, worker_id):
-    analysis.run(start=worker_id, step=n_workers, verbose=not worker_id)
-    return analysis
-
 def display_hack():
     sys.stdout.write(' ')
     sys.stdout.flush()
@@ -400,17 +396,17 @@ params = list(zip(itertools.repeat(lipid_analysis),
 ray.init()
 
 @ray.remote
-def parallelize_run(analysis): #, n_workers, worker_id):
-	analysis.run() #start=worker_id, step=n_workers, verbose=not worker_id)
+def parallelize_run(analysis, n_workers, worker_id):
+	analysis.run(verbose = not worker_id) #start=worker_id, step=n_workers, verbose=not worker_id)
 	return analysis
 
-futures = [parallelize_run.remote(par[0]) for par in params]
+futures = [parallelize_run.remote(*par) for par in params]
 print(ray.get(futures))
 
 '''
 # dump data into files for checkpointing purposes
-n_frames = [partial_analysis.n_frames for partial_analysis in analyses]
-data = [partial_analysis.interactions for partial_analysis in analyses]
+n_frames = [partial_analysis.n_frames for partial_analysis in futures]
+data = [partial_analysis.interactions for partial_analysis in futures]
 
 if not os.path.exists(f'{outpath}/datafiles/'):
 	os.mkdir(f'{outpath}/datafiles/')
