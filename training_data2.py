@@ -2,11 +2,9 @@ import argparse
 import MDAnalysis as mda
 from MDAnalysis.analysis.base import AnalysisBase
 import numpy as np
-from ray.util.multiprocessing import Pool
 import itertools
 import glob
 import re
-import ray
 import sys
 import os
 import json
@@ -35,6 +33,8 @@ parser.add_argument('-e', '--seg', dest='seg', default='MEMB',
 					help='Segname of membrane seleciton. Defaults to MEMB from CHARMM-GUI')
 parser.add_argument('-t', '--threads', dest='cpu', default=os.cpu_count()*0.75,
 					help='Number of cpu cores for calculations. Defaults to 75 percent ncpus.')
+parser.add_argument('-mp', '--multiprocessing', dest='multi', default='multiprocessing',
+                            choices=['multiprocessing','ray'], help='Which multiprocessing library to use')
 
 args = parser.parse_args()
 
@@ -47,6 +47,7 @@ minimum_bound = int(args.min)
 dcd = args.dcd if args.dcd else system
 segname = args.seg
 n_workers = int(args.cpu)
+multi = args.multi
 
 # build custom data structure
 class LipidContacts(AnalysisBase):
@@ -389,45 +390,54 @@ def display_hack():
     sys.stdout.write(' ')
     sys.stdout.flush()
 
-params = list(zip(itertools.repeat(lipid_analysis),
-             itertools.repeat(n_workers),
-             range(n_workers)))
 
-ray.init()
-
-@ray.remote
 def parallelize_run(analysis, n_workers, worker_id):
-	analysis.run(verbose = not worker_id) #start=worker_id, step=n_workers, verbose=not worker_id)
-	return analysis
+    analysis.run(start=worker_id, step=n_workers, verbose=not worker_id)
+    return analysis
 
-futures = [parallelize_run.remote(*par) for par in params]
-print(ray.get(futures))
+params = list(zip(itertools.repeat(lipid_analysis),
+                itertools.repeat(n_workers),
+                range(n_workers)))
 
-'''
-# dump data into files for checkpointing purposes
-n_frames = [partial_analysis.n_frames for partial_analysis in futures]
-data = [partial_analysis.interactions for partial_analysis in futures]
+if __name__ == '__main__':
+    
+    if multi == 'multiprocessing':
+        from multiprocessing import Pool
+        pool = Pool(processes=n_workers, initializer=display_hack)
+        analyses = pool.starmap(parallelize_run, params)
+        pool.close()
 
-if not os.path.exists(f'{outpath}/datafiles/'):
-	os.mkdir(f'{outpath}/datafiles/')
-	
-print(f'Writing out {n_workers} data files.')
-for i, d in enumerate(data):
-	with open(f'{outpath}/datafiles/raw_interactions{i}.json', 'w') as f:
-		json.dump(to_json(d), f)
-
-# combine all data into master checkpoint file, clean up files
-print('Writing out master data file and cleaning up` datafiles/`')
-master = merge_data(n_workers)
-with open(f'{outpath}/datafiles/raw_data_{system}.json', 'w') as f:
-	json.dump(to_json(master), f)
-	
-for i in range(n_workers):
-	os.remove(f'{outpath}/datafiles/raw_interactions{i}.json')
-
-# smooth and then obtain coefficients for entire dataset
-print('Smoothing frame data, fitting curves and calculating coefficients')
-coeffs = get_coeffs(master)
-with open(f'{outpath}/datafiles/{system}_coeffs.json', 'w') as f:
-	json.dump(to_json(coeffs), f)
-'''
+    else:
+        import ray
+        ray.init()
+        parallelize_run = ray.remote(parallelize_run)    
+        
+        futures = [parallelize_run.remote(*par) for par in params]
+        analyses = ray.get(futures)
+    
+    # dump data into files for checkpointing purposes
+    n_frames = [partial_analysis.n_frames for partial_analysis in analyses]
+    data = [partial_analysis.interactions for partial_analysis in analyses]
+    
+    if not os.path.exists(f'{outpath}/datafiles/'):
+    	os.mkdir(f'{outpath}/datafiles/')
+    	
+    print(f'Writing out {n_workers} data files.')
+    for i, d in enumerate(data):
+    	with open(f'{outpath}/datafiles/raw_interactions{i}.json', 'w') as f:
+    		json.dump(to_json(d), f)
+    
+    # combine all data into master checkpoint file, clean up files
+    print('Writing out master data file and cleaning up` datafiles/`')
+    master = merge_data(n_workers)
+    with open(f'{outpath}/datafiles/raw_data_{system}.json', 'w') as f:
+    	json.dump(to_json(master), f)
+    	
+    for i in range(n_workers):
+    	os.remove(f'{outpath}/datafiles/raw_interactions{i}.json')
+    
+    # smooth and then obtain coefficients for entire dataset
+    print('Smoothing frame data, fitting curves and calculating coefficients')
+    coeffs = get_coeffs(master)
+    with open(f'{outpath}/datafiles/{system}_coeffs.json', 'w') as f:
+    	json.dump(to_json(coeffs), f)

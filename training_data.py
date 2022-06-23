@@ -1,8 +1,8 @@
 import MDAnalysis as mda
 from MDAnalysis.analysis.base import AnalysisBase
 import numpy as np
-#from multiprocessing import Pool
-from ray.util.multiprocessing import Pool
+from multiprocessing import Pool
+#from ray.util.multiprocessing import Pool
 import itertools
 import sys
 import os
