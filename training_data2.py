@@ -33,8 +33,8 @@ parser.add_argument('-d', '--dcd', dest='dcd', default=False,
 					help='Alternate system name if different for dcd files')
 parser.add_argument('-e', '--seg', dest='seg', default='MEMB',
 					help='Segname of membrane seleciton. Defaults to MEMB from CHARMM-GUI')
-parser.add_argument('-p', '--cpus', dest='cpu', default=os.cpu_count()*3/4,
-					help='Number of cpu cores for calculations. Defaults to 75% ncpus.')
+parser.add_argument('-t', '--threads', dest='cpu', default=os.cpu_count()*0.75,
+					help='Number of cpu cores for calculations. Defaults to 75 percent ncpus.')
 
 args = parser.parse_args()
 
@@ -407,6 +407,7 @@ def parallelize_run(analysis): #, n_workers, worker_id):
 futures = [parallelize_run.remote(par[0]) for par in params]
 print(ray.get(futures))
 
+'''
 # dump data into files for checkpointing purposes
 n_frames = [partial_analysis.n_frames for partial_analysis in analyses]
 data = [partial_analysis.interactions for partial_analysis in analyses]
@@ -433,3 +434,4 @@ print('Smoothing frame data, fitting curves and calculating coefficients')
 coeffs = get_coeffs(master)
 with open(f'{outpath}/datafiles/{system}_coeffs.json', 'w') as f:
 	json.dump(to_json(coeffs), f)
+'''
