@@ -400,7 +400,7 @@ def natural_sort(l):
 structure_file = f'{filepath}/{system}.{struc}'
 trajectories = natural_sort(glob.glob(f'{filepath}/{dcd}*.{traj}'))[first:last]
 
-print(f'Loading the following:\nStructure file: {structure_file}')
+print(f'Loading.................................\nStructure file: {structure_file}')
 print(f'and these trajectories:\n{[os.path.basename(traj) for traj in trajectories]}')
 u = mda.Universe(structure_file, trajectories)
 
@@ -454,8 +454,18 @@ if __name__ == '__main__':
     
     # combine all data into master checkpoint file, clean up files
     print('Writing out master data file and cleaning up` datafiles/`')
+    
+    if first and last:
+        outname = f'{system}_{first}_{last}'
+    elif first:
+        outname = f'{system}_{first}_end'
+    elif last:
+        outname = f'{system}_start_{last}'
+    else:
+        outname = f'{system}_start_end'
+
     master = merge_data(n_workers)
-    with open(f'{outpath}/datafiles/raw_data_{system}.json', 'w') as f:
+    with open(f'{outpath}/datafiles/raw_data_{outname}.json', 'w') as f:
     	json.dump(to_json(master), f)
     	
     for i in range(n_workers):
@@ -464,5 +474,5 @@ if __name__ == '__main__':
     # smooth and then obtain coefficients for entire dataset
     print('Smoothing frame data, fitting curves and calculating coefficients')
     coeffs = get_coeffs(master)
-    with open(f'{outpath}/datafiles/{system}_coeffs.json', 'w') as f:
+    with open(f'{outpath}/datafiles/{outname}_coeffs.json', 'w') as f:
     	json.dump(to_json(coeffs), f)
