@@ -1,9 +1,10 @@
+import argparse
 import MDAnalysis as mda
 from MDAnalysis.analysis.base import AnalysisBase
 import numpy as np
-from multiprocessing import Pool
-#from ray.util.multiprocessing import Pool
 import itertools
+import glob
+import re
 import sys
 import os
 import json
@@ -14,10 +15,63 @@ import collections
 ## RUNTIME OPTIONS ##
 #####################
 
-system = 'T6R2' # name of psf/dcd for loading and file naming
-contact_distance = 3.4 # minimum distance for cutoff calculations (A)
-smoothing_cutoff = 3 # hysteresis cutoff for smoothing of bound frames
-minimum_bound = 3 # min. number of frames bound to be considered bound
+parser = argparse.ArgumentParser(description='')
+
+parser.add_argument('filepath', help='Filepath to simulation files.')
+parser.add_argument('system', help='System name (e.g. system.psf, system2.dcd)')
+parser.add_argument('-o', '--output', dest='output', default=os.getcwd(), 
+			    help='Output destination for data\
+                                storage. Defaults to current directory.')
+parser.add_argument('-c', '--cutoff', dest='cutoff', default='3.4',
+			    help='Min. distance for contact \
+                                calculations (A)')
+parser.add_argument('-s', '--smoothing', dest='smooth', default='3',
+			    help='Hysteresis cutoff for smoothing\
+                                of bound frames')
+parser.add_argument('-m', '--min', dest='min', default='3',
+			    help='Min. number of frames bound to \
+                                be considered bound')
+parser.add_argument('-d', '--dcd', dest='dcd', default=False,
+			    help='Alternate system name if different \
+                                for dcd files')
+parser.add_argument('-e', '--seg', dest='seg', default='MEMB',
+			    help='Segname of membrane selection.\
+                                Defaults to MEMB from CHARMM-GUI')
+parser.add_argument('-t', '--threads', dest='cpu', default=os.cpu_count()*0.75,
+			    help='Number of cpu cores for calculations.\
+                                Defaults to 75 percent ncpus.')
+parser.add_argument('-mp', '--multiprocessing', dest='multi', default='ray',
+                            choices=['multiprocessing','ray'], 
+                            help='Which multiprocessing library to use. \
+                                Ray appears to be faster.')
+parser.add_argument('-ff', '--first', dest='first', default=1,
+                            help='First traj to load. Defaults to all trajs.')
+parser.add_argument('-lf', '--last', dest='last', default=None,
+                            help='Last traj to load. Defaults to all trajs.')
+parser.add_argument('-sim', '--simulation', dest='sim', default='namd',
+                            choices=['namd','gromacs','hmmm','martini'],
+                            help='Type of simulation being run. This affects\
+                                the type of structure file and trajectory\
+                                format. Defaults to namd')
+
+args = parser.parse_args()
+
+filepath = args.filepath[:-1] if args.filepath[-1] == '/' else args.filepath
+system = args.system
+outpath = args.output[:-1] if args.output == '/' else args.output
+contact_distance = float(args.cutoff)
+smoothing_cutoff = int(args.smooth)
+minimum_bound = int(args.min)
+dcd = args.dcd if args.dcd else system
+segname = args.seg
+n_workers = int(args.cpu)
+multi = args.multi
+first = int(args.first) - 1
+last = int(args.last) if args.last else args.last
+
+file_extensions = {'namd': ['psf','dcd'], 'gromacs': ['gro','xtc'], 
+                    'hmmm': ['psf','dcd'], 'martini': ['gro','xtc']}
+struc, traj = file_extensions[args.sim]
 
 # build custom data structure
 class LipidContacts(AnalysisBase):
@@ -25,9 +79,7 @@ class LipidContacts(AnalysisBase):
         super().__init__(lipids.universe.trajectory, **kwargs)
         self.lipids = lipids
         self.protein = protein
-        #self.u = self.protein.universe
         self.u = self.lipids.universe
-        #self.lipids = lipids
         self.cutoff = cutoff
         self.smoothing_cutoff = smoothing_cutoff
         self.min_bind = min_bind
@@ -62,12 +114,10 @@ class LipidContacts(AnalysisBase):
 
         # iteration through the tm residues, find unique lipid contacts
         for key in self.interactions.keys():
-            res, seg = key.split('-')
-            #lips = self.lipids.select_atoms(f'segid MEMB and around \
-            #        {self.cutoff} global (resid {res} and segid {seg} and \
-            #        protein)', updating=True)
+            resn, resi, seg = key.split('-')
+            
             lips = self.lipids.select_atoms(f'segid MEMB and around \
-                    {self.cutoff} global (resid {res} and segid {seg} and \
+                    {self.cutoff} global (resid {resi} and segid {seg} and \
                     group protein)',protein=self.protein)
             lip_resi = lips.residues.ix # this is the list of unique lipid resIDs for contacts
             if len(lip_resi) > 0:
@@ -78,25 +128,6 @@ class LipidContacts(AnalysisBase):
                         self.interactions[key][lipRN].update({lipID:[frame]})
                     else:
                         self.interactions[key][lipRN][lipID] += [frame]
-
-
-#    def _conclude(self):
-#        '''
-#        Postprocessing:
-#        '''
-#        with open("raw_interactions.json", "w") as f:
-#            json.dump(self.to_json(self.interactions), f)
-#
-#        self.results = {}
-#        for pres in self.interactions.keys():
-#            for lip in self.interactions[pres].keys():
-#                # check for empty
-#                if self.interactions[pres][lip]:
-#                    coeffs = self.get_coeff(self.interactions[pres][lip])
-#                    self.results.update({f'{pres}-{lip}': coeffs})
-#        
-#        with open("coefficients.json", "w") as f:
-#            json.dump(self.to_json(self.results), f)
 
 
     ##################
@@ -124,7 +155,9 @@ class LipidContacts(AnalysisBase):
         # obtain list of resids pertaining to residues within this boundary
         protein_residues = self.u.select_atoms(f'protein and prop z > {z_bot} and prop z < {z_top}').residues
 
-        return [f'{resID}-{segID}' for (resID,segID) in zip(protein_residues.ix,protein_residues.segids)]
+        return [f'{resNAME}-{resID}-{segID}' for (resNAME,resID,segID) in zip(protein_residues.resnames,
+                                                                            protein_residues.ix,
+                                                                            protein_residues.segids)]
 
 
     def map_lipids(self):
@@ -307,7 +340,7 @@ def get_binding_profile(pairdata, smoothing_cutoff = 3):
 
 def merge_data(nJSONs):
     for i in range(nJSONs):
-        with open(f'datafiles/raw_interactions{i}.json', 'r') as infile:
+        with open(f'{outpath}/datafiles/raw_interactions{i}.json', 'r') as infile:
             data = json.load(infile)
 
         # this means we are appending data to the final data structure
@@ -354,87 +387,82 @@ def to_json(data):
     raise TypeError
 
 
+def natural_sort(l): 
+	convert = lambda text: int(text) if text.isdigit() else text.lower()
+	alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+	return sorted(l, key=alphanum_key)
+
+
 ###-------------------------------------------------###
 #---------------CODE STARTS HERE----------------------#
 ###-------------------------------------------------###
 
-filepath = '/Scr/msincla01/YidC_Membrane_Simulation/Equilibrium_Sims/Replicas/Top6'
-dcds = [f'{filepath}/{system}_S{n}.dcd' for n in range(1,10)]
+structure_file = f'{filepath}/{system}.{struc}'
+trajectories = natural_sort(glob.glob(f'{filepath}/{dcd}*.{traj}'))[first:last]
 
-u = mda.Universe(f'{filepath}/{system}.psf',
-                 dcds)
+print(f'Loading the following:\nStructure file: {structure_file}')
+print(f'and these trajectories:\n{[os.path.basename(traj) for traj in trajectories]}')
+u = mda.Universe(structure_file, trajectories)
 
 protein = u.select_atoms('protein')
-lipids = u.select_atoms('segid MEMB')
+lipids = u.select_atoms(f'segid {segname}')
 
 lipid_analysis = LipidContacts(protein, lipids, cutoff = contact_distance,
                                 smoothing_cutoff = smoothing_cutoff, 
                                 min_bind = minimum_bound)
 
-def parallelize_run(analysis, n_workers, worker_id):
-    analysis.run(start=worker_id, step=n_workers, verbose=not worker_id)
-    return analysis
-
 def display_hack():
     sys.stdout.write(' ')
     sys.stdout.flush()
 
-n_workers = os.cpu_count()
+
+def parallelize_run(analysis, n_workers, worker_id):
+    analysis.run(start=worker_id, step=n_workers, verbose=not worker_id)
+    return analysis
 
 params = list(zip(itertools.repeat(lipid_analysis),
-             itertools.repeat(n_workers),
-             range(n_workers)))
+                itertools.repeat(n_workers),
+                range(n_workers)))
 
+if __name__ == '__main__':
+    
+    if multi == 'multiprocessing':
+        from multiprocessing import Pool
+        pool = Pool(processes=n_workers, initializer=display_hack)
+        analyses = pool.starmap(parallelize_run, params)
+        pool.close()
 
-#params = list(zip([lipid_analysis for _ in range(n_workers)],
-#             itertools.repeat(n_workers),
-#             range(n_workers)))
-
-
-# This is REQUIRED in order for multiprocessing to work
-if __name__ == "__main__":
-#	pool = Pool()
-#	analyses = pool.map(lipid_analysis,n_workers)
-#	pool = Pool(processes=n_workers, initializer=display_hack)
-#	analyses = pool.starmap(parallelize_run, params)
-#	pool.close()
-
-	import ray
-	ray.init()
-
-	@ray.remote
-	def parallelize_run(analysis): #, n_workers, worker_id):
-		analysis.run() #start=worker_id, step=n_workers, verbose=not worker_id)
-		return analysis
-
-	futures = [parallelize_run.remote(par[0]) for par in params]
-	print(ray.get(futures))
-
+    else:
+        import ray
+        ray.init()
+        parallelize_run = ray.remote(parallelize_run)    
+        
+        futures = [parallelize_run.remote(*par) for par in params]
+        analyses = ray.get(futures)
+    
     # dump data into files for checkpointing purposes
-	n_frames = [partial_analysis.n_frames for partial_analysis in analyses]
-	data = [partial_analysis.interactions for partial_analysis in analyses]
-	
-	if not os.path.exists('datafiles/'):
-		os.mkdir('datafiles/')
-		
-	print(f'Writing out {n_workers} data files.')
-	for i, d in enumerate(data):
-		with open(f'datafiles/raw_interactions{i}.json', 'w') as f:
-			json.dump(to_json(d), f)
-
+    n_frames = [partial_analysis.n_frames for partial_analysis in analyses]
+    data = [partial_analysis.interactions for partial_analysis in analyses]
+    
+    if not os.path.exists(f'{outpath}/datafiles/'):
+    	os.mkdir(f'{outpath}/datafiles/')
+    	
+    print(f'Writing out {n_workers} data files.')
+    for i, d in enumerate(data):
+    	with open(f'{outpath}/datafiles/raw_interactions{i}.json', 'w') as f:
+    		json.dump(to_json(d), f)
+    
     # combine all data into master checkpoint file, clean up files
-	print('Writing out master data file and cleaning up` datafiles/`')
-	master = merge_data(n_workers)
-	with open(f'datafiles/raw_data_{system}.json', 'w') as f:
-		json.dump(to_json(master), f)
-		
-	for i in range(n_workers):
-		os.remove(f'datafiles/raw_interactions{i}.json')
-
+    print('Writing out master data file and cleaning up` datafiles/`')
+    master = merge_data(n_workers)
+    with open(f'{outpath}/datafiles/raw_data_{system}.json', 'w') as f:
+    	json.dump(to_json(master), f)
+    	
+    for i in range(n_workers):
+    	os.remove(f'{outpath}/datafiles/raw_interactions{i}.json')
+    
     # smooth and then obtain coefficients for entire dataset
-	print('Smoothing frame data, fitting curves and calculating coefficients')
-	coeffs = get_coeffs(master)
-	with open(f'datafiles/{system}_coeffs.json', 'w') as f:
-		json.dump(to_json(coeffs), f)
-
-
+    print('Smoothing frame data, fitting curves and calculating coefficients')
+    coeffs = get_coeffs(master)
+    with open(f'{outpath}/datafiles/{system}_coeffs.json', 'w') as f:
+    	json.dump(to_json(coeffs), f)
