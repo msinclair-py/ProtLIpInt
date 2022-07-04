@@ -257,7 +257,7 @@ if __name__ == "__main__":
     with open("sample_output_coeffs.json", "r") as f:
         data = json.load(f)
     
-#     seq = list(data.keys()) #e.g. TYR-483-PROA
+    seq = list(data.keys()) #e.g. TYR-483-PROA
 #     seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
     def lip_index(data: dict):
         seq = list(data.keys()) #e.g. TYR-483-PROA
