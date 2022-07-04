@@ -308,6 +308,8 @@ if __name__ == "__main__":
     all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
     print(all_resnames)
     all_resnames = seq_parser(all_resnames)
+    print(all_resnames)
+
     start_idx = 0
     for seg in segs:
         end_idx_p1 = np.sum(all_segnames == seg) + start_idx
