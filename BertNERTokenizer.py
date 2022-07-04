@@ -257,8 +257,14 @@ if __name__ == "__main__":
     with open("sample_output_coeffs.json", "r") as f:
         data = json.load(f)
     
-    seq = list(data.keys()) #e.g. TYR-483-PROA
-    seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
+#     seq = list(data.keys()) #e.g. TYR-483-PROA
+#     seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
+    def lip_index(data: dict):
+        seq = list(data.keys()) #e.g. TYR-483-PROA
+#         seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
+        seq_nonzero = [[(l, v) for (l, v) in data[s] if isinstance(v, list)] for s in seq]
+        return seq_nonzero
+    print(lip_index(data))
     split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
     
     ##AA Letter Mapping
@@ -269,7 +275,7 @@ if __name__ == "__main__":
 #     print(np.isin(split_txt[:,0], AA).all())
 
     ##Lipid index dictionary
-    lips = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"] 
+    lips = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"] #This specific order matters!
     lip2idx = {k:v for v, k in enumerate(lips)}
     idx2lip = {v:k for k, v in lip2idx.items()}
     
@@ -353,7 +359,8 @@ if __name__ == "__main__":
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
 #     print(inputs)
+
     
-    ds = NERSequenceDataset(inputs)
-    print(ds)
+#     ds = NERSequenceDataset(inputs)
+#     print(ds)
     
