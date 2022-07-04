@@ -323,7 +323,7 @@ if __name__ == "__main__":
         modified_slice += current_slice
         start_idx = end_idx_p1
 #     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
-    proper_inputs = [' '.join(modified_slice)] #[str_with_space_1letter_and_seps]
+    proper_inputs = ["CLS"] + [' '.join(modified_slice)] #[str_with_space_1letter_and_seps]
     
     def get_args():
         parser = argparse.ArgumentParser(description='Training')
