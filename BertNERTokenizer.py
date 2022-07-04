@@ -33,6 +33,8 @@ import inspect
 import functools
 import json
 import itertools
+from train import get_args
+
 
 """https://colab.research.google.com/drive/1tsiTpC4i26QNdRzBHFfXIOFVToE54-9b?usp=sharing#scrollTo=L8eapLvAiGeY"""
 
@@ -326,7 +328,8 @@ if __name__ == "__main__":
     proper_inputs = [' '.join(modified_slice)] #[str_with_space_1letter_and_seps]
     
 #     print(modified_slice)
-    tokenizer=BertTokenizer.from_pretrained("Rostlab/prot_bert",do_lower_case=False, return_tensors="pt",cache_dir="/Scr/hyunpark/DL_Sequence_Collab/pfcrt_project/output")
+    hparams = get_args()
+    tokenizer=BertTokenizer.from_pretrained("Rostlab/prot_bert",do_lower_case=False, return_tensors="pt",cache_dir=hparams.load_model_directory)
     inputs = tokenizer.batch_encode_plus(proper_inputs,
                                   add_special_tokens=True,
                                   padding=True, truncation=True, return_tensors="pt",
