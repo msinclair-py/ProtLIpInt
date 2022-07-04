@@ -307,8 +307,9 @@ if __name__ == "__main__":
     all_resnames, all_segnames, modified_slice = split_txt[:,0].tolist(), split_txt[:,2], []
     all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
     print(all_resnames)
-    all_resnames = seq_parser(all_resnames)
+    all_resnames = seq_parser(all_resnames) #[str_with_space_3letter] -> [str_with_space_1letter]
     print(all_resnames)
+    all_renames = all_resnames.split(" ") #List[str]
 
     start_idx = 0
     for seg in segs:
