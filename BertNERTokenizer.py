@@ -285,6 +285,7 @@ if __name__ == "__main__":
         data = json.load(f)
     
     seq = list(data.keys()) #e.g. TYR-483-PROA
+    print(seq)
     seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
     split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
     
