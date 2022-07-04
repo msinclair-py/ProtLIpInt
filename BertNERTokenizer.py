@@ -308,7 +308,7 @@ if __name__ == "__main__":
     all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
 #     print(all_resnames)
     all_resnames = seq_parser(all_resnames) #[str_with_space_3letter] -> [str_with_space_1letter]
-    all_renames = all_resnames[0].split(" ") #List[str]
+    all_resnames = all_resnames[0].split(" ") #List[str]
     print(all_resnames)
 
     start_idx = 0
