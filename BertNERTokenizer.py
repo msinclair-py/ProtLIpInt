@@ -276,8 +276,8 @@ if __name__ == "__main__":
 #     aa_seg = list(itertools.product(aa, seg))
 
     #DATA PREPROCESSING
-    split_txt = np.tile(split_txt, (2,1)) #Multiseg-test
-    split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
+#     split_txt = np.tile(split_txt, (2,1)) #Multiseg-test
+#     split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
 #     split_txt[2*len(seq):,2] = "PROC" #Multiseg-test
     all_resnames, all_segnames, modified_slice = split_txt[:,0].tolist(), split_txt[:,2], []
     all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
