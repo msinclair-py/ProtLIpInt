@@ -378,7 +378,7 @@ if __name__ == "__main__":
     inputs = tokenizer.batch_encode_plus(proper_inputs,
                                   add_special_tokens=True,
                                   padding=True, truncation=True, return_tensors="pt",
-                                  max_length=hparams.max_length) #Tokenize inputs as a dict type of Tensors
+                                  max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
     print(inputs)
     
 #     # some default tokens from huggingface
