@@ -304,9 +304,9 @@ if __name__ == "__main__":
 #     aa_seg = list(itertools.product(aa, seg))
 
     #DATA PREPROCESSING
-    split_txt = np.tile(split_txt, (3,1))
-    split_txt[len(seq):len(seq)*2,2] = "PROB"
-    split_txt[2*len(seq):,2] = "PROC"
+#     split_txt = np.tile(split_txt, (3,1)) #Multiseg-test
+#     split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
+#     split_txt[2*len(seq):,2] = "PROC" #Multiseg-test
     all_resnames, all_segnames, modified_slice = split_txt[:,0].tolist(), split_txt[:,2], []
     all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
 #     print(all_resnames)
@@ -323,8 +323,15 @@ if __name__ == "__main__":
         modified_slice += current_slice
         start_idx = end_idx_p1
     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
+    proper_inputs = [' '.join(modified_slice)] #[str_with_space_1letter_and_seps]
     
-    print(modified_slice)
+#     print(modified_slice)
+    tokenizer=BertTokenizer.from_pretrained("Rostlab/prot_bert",do_lower_case=False, return_tensors="pt",cache_dir="/Scr/hyunpark/DL_Sequence_Collab/pfcrt_project/output")
+    inputs = tokenizer.batch_encode_plus(proper_inputs,
+                                  add_special_tokens=True,
+                                  padding=True, truncation=True, return_tensors="pt",
+                                  max_length=hparams.max_length) #Tokenize inputs as a dict type of Tensors
+    print(inputs)
     
 #     # some default tokens from huggingface
 #     # Manually collected
