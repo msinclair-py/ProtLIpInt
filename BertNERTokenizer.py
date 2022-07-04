@@ -259,12 +259,6 @@ if __name__ == "__main__":
     
     seq = list(data.keys()) #e.g. TYR-483-PROA
 #     seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
-    def lip_index(data: dict):
-        seq = list(data.keys()) #e.g. TYR-483-PROA
-#         seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
-        seq_nonzero = [[(l, v) for (l, v) in data[s].items() if isinstance(v, list)] for s in seq]
-        return seq_nonzero
-    print(lip_index(data))
     split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
     
     ##AA Letter Mapping
@@ -278,7 +272,12 @@ if __name__ == "__main__":
     lips = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"] #This specific order matters!
     lip2idx = {k:v for v, k in enumerate(lips)}
     idx2lip = {v:k for k, v in lip2idx.items()}
-    
+    def lip_index(data: dict):
+        seq = list(data.keys()) #e.g. TYR-483-PROA
+#         seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
+        seq_nonzero = [[(lip2idx.get(l, None), v) for (l, v) in data[s].items() if isinstance(v, list)] for s in seq]
+        return seq_nonzero
+    print(lip_index(data))
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
 
