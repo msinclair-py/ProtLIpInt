@@ -262,7 +262,7 @@ if __name__ == "__main__":
     def lip_index(data: dict):
         seq = list(data.keys()) #e.g. TYR-483-PROA
 #         seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
-        seq_nonzero = [[(l, v) for (l, v) in data[s] if isinstance(v, list)] for s in seq]
+        seq_nonzero = [[(l, v) for (l, v) in data[s].items() if isinstance(v, list)] for s in seq]
         return seq_nonzero
     print(lip_index(data))
     split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
