@@ -319,7 +319,7 @@ if __name__ == "__main__":
     start_idx = 0
     for seg in np.unique(all_segnames):
         end_idx_p1 = np.sum(all_segnames == seg) + start_idx
-        current_slice = all_resnames[slice(start_idx, end_idx_p1)] + ["[SEP]"]
+        current_slice = all_resnames[slice(start_idx, end_idx_p1)] #+ ["[SEP]"] #need sentence pair encoding (SEP not needed!!)
 #         print(current_slice)
         modified_slice.append(current_slice) #not extend but append!!!!
         start_idx = end_idx_p1
@@ -374,7 +374,7 @@ if __name__ == "__main__":
 
     hparams = get_args()
     tokenizer=BertTokenizer.from_pretrained("Rostlab/prot_bert",do_lower_case=False, return_tensors="pt",cache_dir=hparams.load_model_directory)
-    inputs = tokenizer.batch_encode_plus(proper_inputs,
+    inputs = tokenizer(proper_inputs,
                                   add_special_tokens=True,
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #Tokenize inputs as a dict type of Tensors
