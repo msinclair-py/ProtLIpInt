@@ -29,6 +29,8 @@ from typing import List, Optional
 from SmilesPE.pretokenizer import atomwise_tokenizer, kmer_tokenizer
 import inspect
 import functools
+import json
+import itertools
 
 """https://colab.research.google.com/drive/1tsiTpC4i26QNdRzBHFfXIOFVToE54-9b?usp=sharing#scrollTo=L8eapLvAiGeY"""
 
@@ -277,6 +279,25 @@ class BertNERTokenizer(PreTrainedTokenizer):
         return (vocab_file,)
       
 if __name__ == "__main__":      
+    with open("sample_output_coeffs.json", "r") as f:
+        data = json.load(f)
+    
+    seq = list(data.keys()) #e.g. TYR-483-PROA
+    seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
+    split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
+    
+    AA = ["ALA","ARG","ASN","ASP","CYS","GLU","GLN","GLY","HIS","ILE","LEU","LYS","MET","PHE","PRO","SER","THR","TRP","TYR","VAL"]
+    aa = ["A","R","N","D","C","E","Q","H","I","L","K","M","F","P","S","T","W","Y","V"]
+    three2one = {THREE:ONE for THREE, ONE in list(zip(AA,aa))}
+    
+    lip = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"] 
+    lip2idx = {k:v for v, k in enumerate(lip)}
+    idx2lip = {v:k for k, v in lip2idx.items()}
+    
+    seg = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
+#     aa_seg = list(itertools.product(aa, seg))
+    
+    
     # some default tokens from huggingface
     # Manually collected
     default_toks = ['[PAD]', 
@@ -296,6 +317,8 @@ if __name__ == "__main__":
                  '[NH2+]', '%10', '[SiH2]', '[nH+]', '[Si@@]', '[P@@+]', '/', '1', '[c+]', '[S@]', '[S+]', 
                  '[SH+]', '[B@@-]', '8', '[B@-]', '[C-]', '7', '[P@]', '[se]', 'S', '[n+]', '[PH]', '[I+]', '5', 'p', '[BH2-]', '[N@@+]', '[CH]', 'Cl']
 
+    
+    
     # spe tokens
     # Made from SmilesPE.learner
     # SPE format must be "[FEATURIZER]_[SPE]_[DATABASE].txt"
