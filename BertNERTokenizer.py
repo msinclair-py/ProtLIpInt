@@ -326,7 +326,7 @@ if __name__ == "__main__":
 #         proper_inputs.append()
 #     modified_slice = ["[CLS]"] + modified_slice #NOT necessary
 #     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
-    proper_inputs = [' '.join(mod) for mod in modified_slice] #List[seq_wo_sep]
+    proper_inputs = [[' '.join(mod) for mod in modified_slice]] #[List[seq_wo_sep]]
     
     def get_args():
         parser = argparse.ArgumentParser(description='Training')
@@ -374,7 +374,7 @@ if __name__ == "__main__":
 
     hparams = get_args()
     tokenizer=BertTokenizer.from_pretrained("Rostlab/prot_bert",do_lower_case=False, return_tensors="pt",cache_dir=hparams.load_model_directory)
-    inputs = tokenizer(*proper_inputs,
+    inputs = tokenizer(proper_inputs,
                                   add_special_tokens=True,
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #Tokenize inputs as a dict type of Tensors
