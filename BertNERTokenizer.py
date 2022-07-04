@@ -26,6 +26,7 @@ import re
 import codecs
 import unicodedata
 from typing import List, Optional
+from SmilesPE.tokenizer import SPE_Tokenizer
 from SmilesPE.pretokenizer import atomwise_tokenizer, kmer_tokenizer
 import inspect
 import functools
