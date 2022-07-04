@@ -67,7 +67,7 @@ def load_vocab(vocab_file):
         vocab[token] = index
     return vocab
     
-class SMILES_SPE_Tokenizer(PreTrainedTokenizer):
+class BertNERTokenizer(PreTrainedTokenizer):
     r"""
     Constructs a SMILES tokenizer. Based on SMILES Pair Encoding (https://github.com/XinhaoLi74/SmilesPE).
     This tokenizer inherits from :class:`~transformers.PreTrainedTokenizer` which contains most of the methods. Users
