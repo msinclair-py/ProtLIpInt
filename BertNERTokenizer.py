@@ -33,6 +33,7 @@ import inspect
 import functools
 import json
 import itertools
+from dataset import  NERSequenceDataset
 
 """https://colab.research.google.com/drive/1tsiTpC4i26QNdRzBHFfXIOFVToE54-9b?usp=sharing#scrollTo=L8eapLvAiGeY"""
 
@@ -352,4 +353,6 @@ if __name__ == "__main__":
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
     print(inputs)
+    
+    NERSequenceDataset
     
