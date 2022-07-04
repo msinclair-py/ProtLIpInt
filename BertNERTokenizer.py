@@ -292,7 +292,7 @@ if __name__ == "__main__":
     AA = ["ALA","ARG","ASN","ASP","CYS","GLU","GLN","GLY","HIS","ILE","LEU","LYS","MET","PHE","PRO","SER","THR","TRP","TYR","VAL"]
     aa = ["A","R","N","D","C","E","Q","H","I","L","K","M","F","P","S","T","W","Y","V"]
     three2one = {THREE:ONE for THREE, ONE in list(zip(AA,aa))}
-    seqs = list(map(lambda seq: ' '.join(list(map(lambda aa: three2one.get(aa, None), seq.split(" ") ))), seqs ))    #THREE LETTER -> ONE LETTER
+    seq_parser = lambda seqs: list(map(lambda seq: ' '.join(list(map(lambda aa: three2one.get(aa, None), seq.split(" ") ))), seqs ))    #THREE LETTER -> ONE LETTER
     
     ##Lipid index dictionary
     lips = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"] 
@@ -304,7 +304,7 @@ if __name__ == "__main__":
 
     #DATA PREPROCESSING
     all_resnames, all_segnames, modified_slice = split_txt[:,0].tolist(), split_txt[:,2], []
-    all_resnames = list(map(lambda seq: ' '.join(list(map(lambda aa: three2one.get(aa, None), seq.split(" ") ))), all_resnames ))
+    all_resnames = seq_parser(all_resnames)
     start_idx = 0
     for seg in segs:
         end_idx_p1 = np.sum(all_segnames == seg) + start_idx
