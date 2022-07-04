@@ -285,7 +285,6 @@ if __name__ == "__main__":
         data = json.load(f)
     
     seq = list(data.keys()) #e.g. TYR-483-PROA
-    print(seq)
     seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
     split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
     
@@ -294,7 +293,8 @@ if __name__ == "__main__":
     aa = ["A","R","N","D","C","E","Q","H","I","L","K","M","F","P","S","T","W","Y","V"]
     three2one = {THREE:ONE for THREE, ONE in list(zip(AA,aa))}
     seq_parser = lambda seqs: list(map(lambda seq: ' '.join(list(map(lambda aa: three2one.get(aa, None), seq.split(" ") ))), seqs ))    #THREE LETTER -> ONE LETTER
-    
+    print(np.isin(split_txt[:,0], AA))
+
     ##Lipid index dictionary
     lips = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"] 
     lip2idx = {k:v for v, k in enumerate(lips)}
