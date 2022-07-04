@@ -309,7 +309,7 @@ if __name__ == "__main__":
     print(all_resnames)
     all_resnames = seq_parser(all_resnames) #[str_with_space_3letter] -> [str_with_space_1letter]
     print(all_resnames)
-    all_renames = all_resnames.split(" ") #List[str]
+    all_renames = all_resnames[0].split(" ") #List[str]
 
     start_idx = 0
     for seg in segs:
