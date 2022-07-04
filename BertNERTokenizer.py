@@ -326,7 +326,7 @@ if __name__ == "__main__":
 #         proper_inputs.append()
 #     modified_slice = ["[CLS]"] + modified_slice #NOT necessary
 #     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
-    proper_inputs = [[' '.join(mod) for mod in modified_slice]] #[List[seq_wo_sep]] for batch_encode_plus
+    proper_inputs = [[' '.join(mod) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
     print(proper_inputs)
 
     def get_args():
