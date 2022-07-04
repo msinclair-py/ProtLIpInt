@@ -286,67 +286,82 @@ if __name__ == "__main__":
     seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
     split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
     
+    ##AA Letter Mapping
     AA = ["ALA","ARG","ASN","ASP","CYS","GLU","GLN","GLY","HIS","ILE","LEU","LYS","MET","PHE","PRO","SER","THR","TRP","TYR","VAL"]
     aa = ["A","R","N","D","C","E","Q","H","I","L","K","M","F","P","S","T","W","Y","V"]
     three2one = {THREE:ONE for THREE, ONE in list(zip(AA,aa))}
+    seqs = list(map(lambda seq: ' '.join(list(map(lambda aa: three2one.get(aa, None), seq.split(" ") ))), seqs ))    #THREE LETTER -> ONE LETTER
     
-    lip = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"] 
-    lip2idx = {k:v for v, k in enumerate(lip)}
+    ##Lipid index dictionary
+    lips = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"] 
+    lip2idx = {k:v for v, k in enumerate(lips)}
     idx2lip = {v:k for k, v in lip2idx.items()}
     
-    seg = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
+    segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
-    
-    
-    # some default tokens from huggingface
-    # Manually collected
-    default_toks = ['[PAD]', 
-                    '[unused1]', '[unused2]', '[unused3]', '[unused4]','[unused5]', '[unused6]', '[unused7]', '[unused8]', '[unused9]', '[unused10]', 
-                    '[UNK]', '[CLS]', '[SEP]', '[MASK]']
 
-    # atom-level tokens used for trained the spe vocabulary
-    # This can be obtained from SmilesPE.learner (see tokenizers/examples.py)
-    atom_toks = ['[c-]', '[SeH]', '[N]', '[C@@]', '[Te]', '[OH+]', 'n', '[AsH]', '[B]', 'b', 
-                 '[S@@]', 'o', ')', '[NH+]', '[SH]', 'O', 'I', '[C@]', '-', '[As+]', '[Cl+2]', 
-                 '[P+]', '[o+]', '[C]', '[C@H]', '[CH2]', '\\', 'P', '[O-]', '[NH-]', '[S@@+]', 
-                 '[te]', '[s+]', 's', '[B-]', 'B', 'F', '=', '[te+]', '[H]', '[C@@H]', '[Na]', 
-                 '[Si]', '[CH2-]', '[S@+]', 'C', '[se+]', '[cH-]', '6', 'N', '[IH2]', '[As]', 
-                 '[Si@]', '[BH3-]', '[Se]', 'Br', '[C+]', '[I+3]', '[b-]', '[P@+]', '[SH2]', '[I+2]', 
-                 '%11', '[Ag-3]', '[O]', '9', 'c', '[N-]', '[BH-]', '4', '[N@+]', '[SiH]', '[Cl+3]', '#', 
-                 '(', '[O+]', '[S-]', '[Br+2]', '[nH]', '[N+]', '[n-]', '3', '[Se+]', '[P@@]', '[Zn]', '2', 
-                 '[NH2+]', '%10', '[SiH2]', '[nH+]', '[Si@@]', '[P@@+]', '/', '1', '[c+]', '[S@]', '[S+]', 
-                 '[SH+]', '[B@@-]', '8', '[B@-]', '[C-]', '7', '[P@]', '[se]', 'S', '[n+]', '[PH]', '[I+]', '5', 'p', '[BH2-]', '[N@@+]', '[CH]', 'Cl']
+    #DATA PREPROCESSING
+    all_resnames, all_segnames, modified_slice = split_txt[:,0].tolist(), split_txt[:,2], []
+    all_resnames = list(map(lambda seq: ' '.join(list(map(lambda aa: three2one.get(aa, None), seq.split(" ") ))), all_resnames ))
+    start_idx = 0
+    for seg in segs:
+        end_idx_p1 = np.sum(all_segnames == seg) + start_idx
+        current_slice = all_resnames[slice(start_idx, end_idx_p1)] + ["[SEP]"]
+        modified_slice += current_slice
+        start_idx = end_idx_p1
+    modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
+    
+    print(modified_slice)
+    
+#     # some default tokens from huggingface
+#     # Manually collected
+#     default_toks = ['[PAD]', 
+#                     '[unused1]', '[unused2]', '[unused3]', '[unused4]','[unused5]', '[unused6]', '[unused7]', '[unused8]', '[unused9]', '[unused10]', 
+#                     '[UNK]', '[CLS]', '[SEP]', '[MASK]']
+
+#     # atom-level tokens used for trained the spe vocabulary
+#     # This can be obtained from SmilesPE.learner (see tokenizers/examples.py)
+#     atom_toks = ['[c-]', '[SeH]', '[N]', '[C@@]', '[Te]', '[OH+]', 'n', '[AsH]', '[B]', 'b', 
+#                  '[S@@]', 'o', ')', '[NH+]', '[SH]', 'O', 'I', '[C@]', '-', '[As+]', '[Cl+2]', 
+#                  '[P+]', '[o+]', '[C]', '[C@H]', '[CH2]', '\\', 'P', '[O-]', '[NH-]', '[S@@+]', 
+#                  '[te]', '[s+]', 's', '[B-]', 'B', 'F', '=', '[te+]', '[H]', '[C@@H]', '[Na]', 
+#                  '[Si]', '[CH2-]', '[S@+]', 'C', '[se+]', '[cH-]', '6', 'N', '[IH2]', '[As]', 
+#                  '[Si@]', '[BH3-]', '[Se]', 'Br', '[C+]', '[I+3]', '[b-]', '[P@+]', '[SH2]', '[I+2]', 
+#                  '%11', '[Ag-3]', '[O]', '9', 'c', '[N-]', '[BH-]', '4', '[N@+]', '[SiH]', '[Cl+3]', '#', 
+#                  '(', '[O+]', '[S-]', '[Br+2]', '[nH]', '[N+]', '[n-]', '3', '[Se+]', '[P@@]', '[Zn]', '2', 
+#                  '[NH2+]', '%10', '[SiH2]', '[nH+]', '[Si@@]', '[P@@+]', '/', '1', '[c+]', '[S@]', '[S+]', 
+#                  '[SH+]', '[B@@-]', '8', '[B@-]', '[C-]', '7', '[P@]', '[se]', 'S', '[n+]', '[PH]', '[I+]', '5', 'p', '[BH2-]', '[N@@+]', '[CH]', 'Cl']
 
     
     
-    # spe tokens
-    # Made from SmilesPE.learner
-    # SPE format must be "[FEATURIZER]_[SPE]_[DATABASE].txt"
-    with open('tokenization/SMILES_SPE_ChEMBL.txt', "r") as ins:
-        spe_toks = []
-        for line in ins:
-            spe_toks.append(line.split('\n')[0])
+#     # spe tokens
+#     # Made from SmilesPE.learner
+#     # SPE format must be "[FEATURIZER]_[SPE]_[DATABASE].txt"
+#     with open('tokenization/SMILES_SPE_ChEMBL.txt', "r") as ins:
+#         spe_toks = []
+#         for line in ins:
+#             spe_toks.append(line.split('\n')[0])
 
-    spe_tokens = []
-    for s in spe_toks:
-        spe_tokens.append(''.join(s.split(' ')))
-    print('Number of SMILES:', len(spe_toks))
+#     spe_tokens = []
+#     for s in spe_toks:
+#         spe_tokens.append(''.join(s.split(' ')))
+#     print('Number of SMILES:', len(spe_toks))
     
-    spe_vocab = default_toks + atom_toks + spe_tokens
+#     spe_vocab = default_toks + atom_toks + spe_tokens
     
-    #Make a vocabulary file
-    with open('tokenization/vocab_spe.txt', 'w') as f:
-        for voc in spe_vocab:
-            f.write(f'{voc}\n')
+#     #Make a vocabulary file
+#     with open('tokenization/vocab_spe.txt', 'w') as f:
+#         for voc in spe_vocab:
+#             f.write(f'{voc}\n')
             
-    tokenizer = SMILES_SPE_Tokenizer(vocab_file='tokenization/vocab_spe.txt', spe_file='tokenization/SMILES_SPE_ChEMBL.txt', which_featurizer="smiles", which_tokenizer="spe")
+#     tokenizer = SMILES_SPE_Tokenizer(vocab_file='tokenization/vocab_spe.txt', spe_file='tokenization/SMILES_SPE_ChEMBL.txt', which_featurizer="smiles", which_tokenizer="spe")
     
-    smi_1 = 'CC[N+](C)(C)Cc1ccccc1Br'
-    smi_2 = 'c1cccc1[invalid]'
-#     encoded_input = tokenizer(smi_1,smi_2) #Do not use this;; similar to EmbeddingBag
-#     tokenizer.decode(encoded_input["input_ids"])  #Do not use this;; similar to EmbeddingBag
-    encoded_input = tokenizer.batch_encode_plus([smi_1,smi_2], 
-                                                  add_special_tokens=True,
-                                                  padding=True, truncation=True, return_tensors="pt",
-                                                  max_length=100) #USE this;; similar to Embedding
-    tokenizer.batch_decode(encoded_input["input_ids"]) #USE this;; similar to Embedding
+#     smi_1 = 'CC[N+](C)(C)Cc1ccccc1Br'
+#     smi_2 = 'c1cccc1[invalid]'
+# #     encoded_input = tokenizer(smi_1,smi_2) #Do not use this;; similar to EmbeddingBag
+# #     tokenizer.decode(encoded_input["input_ids"])  #Do not use this;; similar to EmbeddingBag
+#     encoded_input = tokenizer.batch_encode_plus([smi_1,smi_2], 
+#                                                   add_special_tokens=True,
+#                                                   padding=True, truncation=True, return_tensors="pt",
+#                                                   max_length=100) #USE this;; similar to Embedding
+#     tokenizer.batch_decode(encoded_input["input_ids"]) #USE this;; similar to Embedding
