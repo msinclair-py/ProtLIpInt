@@ -311,8 +311,9 @@ if __name__ == "__main__":
     all_resnames = all_resnames[0].split(" ") #List[str]
     print(all_resnames)
 
+    assert np.isin(all_segnames, segs).all(), "all segnames must match..."
     start_idx = 0
-    for seg in segs:
+    for seg in np.unique(all_segnames):
         end_idx_p1 = np.sum(all_segnames == seg) + start_idx
         current_slice = all_resnames[slice(start_idx, end_idx_p1)] + ["[SEP]"]
         print(current_slice)
