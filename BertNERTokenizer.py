@@ -305,8 +305,8 @@ if __name__ == "__main__":
 
     #DATA PREPROCESSING
     split_txt = np.tile(split_txt, (3,1))
-    splt_txt[len(seq):len(seq)*2,2] = "PROB"
-    splt_txt[2*len(seq):,2] = "PROC"
+    split_txt[len(seq):len(seq)*2,2] = "PROB"
+    split_txt[2*len(seq):,2] = "PROC"
     all_resnames, all_segnames, modified_slice = split_txt[:,0].tolist(), split_txt[:,2], []
     all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
 #     print(all_resnames)
