@@ -293,7 +293,7 @@ if __name__ == "__main__":
     aa = ["A","R","N","D","C","E","Q","H","I","L","K","M","F","P","S","T","W","Y","V"]
     three2one = {THREE:ONE for THREE, ONE in list(zip(AA,aa))}
     seq_parser = lambda seqs: list(map(lambda seq: ' '.join(list(map(lambda aa: three2one.get(aa, None), seq.split(" ") ))), seqs ))    #THREE LETTER -> ONE LETTER
-    print(np.isin(split_txt[:,0], AA))
+    print(np.isin(split_txt[:,0], AA).all())
 
     ##Lipid index dictionary
     lips = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"] 
@@ -306,6 +306,7 @@ if __name__ == "__main__":
     #DATA PREPROCESSING
     all_resnames, all_segnames, modified_slice = split_txt[:,0].tolist(), split_txt[:,2], []
     all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
+    print(all_resnames)
     all_resnames = seq_parser(all_resnames)
     start_idx = 0
     for seg in segs:
