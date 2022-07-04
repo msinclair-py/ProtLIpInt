@@ -321,7 +321,7 @@ if __name__ == "__main__":
     for seg in np.unique(all_segnames):
         end_idx_p1 = np.sum(all_segnames == seg) + start_idx
         current_slice = all_resnames[slice(start_idx, end_idx_p1)] + ["[SEP]"]
-        print(current_slice)
+#         print(current_slice)
         modified_slice += current_slice
         start_idx = end_idx_p1
     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
