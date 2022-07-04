@@ -315,16 +315,18 @@ if __name__ == "__main__":
 #     print(all_resnames)
 
     assert np.isin(all_segnames, segs).all(), "all segnames must match..."
+#     proper_inputs = []
     start_idx = 0
     for seg in np.unique(all_segnames):
         end_idx_p1 = np.sum(all_segnames == seg) + start_idx
         current_slice = all_resnames[slice(start_idx, end_idx_p1)] + ["[SEP]"]
 #         print(current_slice)
-        modified_slice += current_slice
+        modified_slice.append(current_slice) #not extend but append!!!!
         start_idx = end_idx_p1
-    modified_slice = ["[CLS]"] + modified_slice
+#         proper_inputs.append()
+#     modified_slice = ["[CLS]"] + modified_slice #NOT necessary
 #     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
-    proper_inputs = [' '.join(modified_slice)] #[str_with_space_1letter_and_seps]
+    proper_inputs = [' '.join(mod) for mod in modified_slice] #[str_with_space_1letter_and_seps]
     
     def get_args():
         parser = argparse.ArgumentParser(description='Training')
