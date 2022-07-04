@@ -375,6 +375,7 @@ def get_args():
                                   add_special_tokens=True,
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #Tokenize inputs as a dict type of Tensors
+    print(proper_inputs)
     print(inputs)
     
 #     # some default tokens from huggingface
