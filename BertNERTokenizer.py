@@ -282,8 +282,8 @@ if __name__ == "__main__":
 #     aa_seg = list(itertools.product(aa, seg))
 
     #DATA PREPROCESSING
-    split_txt = np.tile(split_txt, (2,1)) #Multiseg-test
-    split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
+#     split_txt = np.tile(split_txt, (2,1)) #Multiseg-test
+#     split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
 #     split_txt[2*len(seq):,2] = "PROC" #Multiseg-test
     all_resnames, all_segnames, modified_slice = split_txt[:,0].tolist(), split_txt[:,2], []
     all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
@@ -304,7 +304,7 @@ if __name__ == "__main__":
 #         proper_inputs.append()
 #     modified_slice = ["[CLS]"] + modified_slice #NOT necessary
 #     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
-    proper_inputs = [[' '.join(mod) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
+    proper_inputs = [[' '.join(mod) for mod in modified_slice]] #if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
 #     print(proper_inputs)
 
     def get_args():
