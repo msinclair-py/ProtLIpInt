@@ -277,7 +277,7 @@ if __name__ == "__main__":
 #         seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
         seq_nonzero = [[(lip2idx.get(l, None), v) for (l, v) in data[s].items() if isinstance(v, list)] for s in seq]
         return seq_nonzero
-    print(lip_index(data))
+#     print(lip_index(data))
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
 
@@ -357,7 +357,7 @@ if __name__ == "__main__":
                                   add_special_tokens=True,
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
-#     print(inputs)
+    print(inputs)
 
     
 #     ds = NERSequenceDataset(inputs)
