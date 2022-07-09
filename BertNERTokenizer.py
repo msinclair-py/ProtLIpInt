@@ -200,10 +200,13 @@ class BertNERTokenizer(PreTrainedTokenizer):
 
         if token_ids_1 is not None:
             return [1] + ([0] * len(token_ids_0)) + [1] + ([0] * len(token_ids_1)) + [1]
-        return [1] + ([0] * len(token_ids_0)) + [1]
-
+        elif token_ids_2 is not None:
+            return [1] + ([0] * len(token_ids_0)) + [1]
+        else:
+            return [1] + ([0] * len(token_ids_0)) + [1]
+        
     def create_token_type_ids_from_sequences(
-        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
+        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_2: Optional[List[int]] = None
     ) -> List[int]:
         """
         Creates a mask from the two sequences passed to be used in a sequence-pair classification task.
@@ -225,8 +228,11 @@ class BertNERTokenizer(PreTrainedTokenizer):
         cls = [self.cls_token_id]
         if token_ids_1 is None:
             return len(cls + token_ids_0 + sep) * [0]
-        return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1]
-
+        elif token_ids_2 is None:
+            return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1]
+        else
+            return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1] + len(token_ids_2 + sep) * [2]
+        
     def save_vocabulary(self, vocab_path):
         """
         Save the sentencepiece vocabulary (copy original file) and special tokens file to a directory.
