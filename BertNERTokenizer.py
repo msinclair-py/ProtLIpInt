@@ -174,7 +174,7 @@ class BertNERTokenizer(PreTrainedTokenizer):
             return [self.cls_token_id] + token_ids_0 + [self.sep_token_id]
         elif token_ids_2 is None:
             return cls + token_ids_0 + sep + token_ids_1 + sep
-        else
+        else:
             return cls + token_ids_0 + sep + token_ids_1 + sep + token_ids_2 + sep
         
     def get_special_tokens_mask(
@@ -206,7 +206,7 @@ class BertNERTokenizer(PreTrainedTokenizer):
             return [1] + ([0] * len(token_ids_0)) + [1]
         elif token_ids_2 is None:
             return [1] + ([0] * len(token_ids_0)) + [1] + ([0] * len(token_ids_1)) + [1]
-        else
+        else:
             return [1] + ([0] * len(token_ids_0)) + [1] + ([0] * len(token_ids_1)) + [1] + ([0] * len(token_ids_2)) + [1]
         
     def create_token_type_ids_from_sequences(
@@ -234,7 +234,7 @@ class BertNERTokenizer(PreTrainedTokenizer):
             return len(cls + token_ids_0 + sep) * [0]
         elif token_ids_2 is None:
             return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1]
-        else
+        else:
             return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1] + len(token_ids_2 + sep) * [2]
         
     def save_vocabulary(self, vocab_path):
@@ -276,7 +276,7 @@ if __name__ == "__main__":
             return [self.cls_token_id] + token_ids_0 + [self.sep_token_id]
         elif token_ids_2 is None:
             return cls + token_ids_0 + sep + token_ids_1 + sep
-        else
+        else:
             return cls + token_ids_0 + sep + token_ids_1 + sep + token_ids_2 + sep
         
     def get_special_tokens_mask(
@@ -295,7 +295,7 @@ if __name__ == "__main__":
             return [1] + ([0] * len(token_ids_0)) + [1]
         elif token_ids_2 is None:
             return [1] + ([0] * len(token_ids_0)) + [1] + ([0] * len(token_ids_1)) + [1]
-        else
+        else:
             return [1] + ([0] * len(token_ids_0)) + [1] + ([0] * len(token_ids_1)) + [1] + ([0] * len(token_ids_2)) + [1]
         
     def create_token_type_ids_from_sequences(
@@ -308,7 +308,7 @@ if __name__ == "__main__":
             return len(cls + token_ids_0 + sep) * [0]
         elif token_ids_2 is None:
             return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1]
-        else
+        else:
             return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1] + len(token_ids_2 + sep) * [2]
         
     
