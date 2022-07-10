@@ -151,7 +151,7 @@ class BertNERTokenizer(PreTrainedTokenizer):
         return out_string
 
     def build_inputs_with_special_tokens(
-        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
+        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_2: Optional[List[int]] = None
     ) -> List[int]:
         """
         Build model inputs from a sequence or a pair of sequence for sequence classification tasks
@@ -178,7 +178,7 @@ class BertNERTokenizer(PreTrainedTokenizer):
             return cls + token_ids_0 + sep + token_ids_1 + sep + token_ids_2 + sep
         
     def get_special_tokens_mask(
-        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_2: Optional[List[int]] = None,, already_has_special_tokens: bool = False
+        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_2: Optional[List[int]] = None, already_has_special_tokens: bool = False
     ) -> List[int]:
         """
         Retrieves sequence ids from a token list that has no special tokens added. This method is called when adding
@@ -266,7 +266,7 @@ class BertNERTokenizer(PreTrainedTokenizer):
 if __name__ == "__main__":      
     #https://huggingface.co/transformers/v3.0.2/_modules/transformers/tokenization_bert.html#BertTokenizer.build_inputs_with_special_tokens
     def build_inputs_with_special_tokens(
-        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
+        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_1: Optional[List[int]] = None
     ) -> List[int]:
         """Custom build"""
         cls = [self.cls_token_id]
@@ -280,7 +280,7 @@ if __name__ == "__main__":
             return cls + token_ids_0 + sep + token_ids_1 + sep + token_ids_2 + sep
         
     def get_special_tokens_mask(
-        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_2: Optional[List[int]] = None,, already_has_special_tokens: bool = False
+        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_2: Optional[List[int]] = None, already_has_special_tokens: bool = False
     ) -> List[int]:
         """Custom build"""
         if already_has_special_tokens:
