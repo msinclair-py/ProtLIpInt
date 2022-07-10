@@ -411,12 +411,13 @@ if __name__ == "__main__":
 
     hparams = get_args()
     tokenizer=BertTokenizer.from_pretrained("Rostlab/prot_bert",do_lower_case=False, return_tensors="pt",cache_dir=hparams.load_model_directory)
+    print(tokenizer.create_token_type_ids_from_sequences.__doc__)
+
     inputs = tokenizer.batch_encode_plus(proper_inputs,
                                   add_special_tokens=True,
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
     print(inputs)
-
     
 #     ds = NERSequenceDataset(inputs)
 #     print(ds)
