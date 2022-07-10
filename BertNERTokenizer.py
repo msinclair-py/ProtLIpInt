@@ -266,7 +266,7 @@ class BertNERTokenizer(PreTrainedTokenizer):
 if __name__ == "__main__":      
     #https://huggingface.co/transformers/v3.0.2/_modules/transformers/tokenization_bert.html#BertTokenizer.build_inputs_with_special_tokens
     def build_inputs_with_special_tokens(
-        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_1: Optional[List[int]] = None
+        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_2: Optional[List[int]] = None
     ) -> List[int]:
         """Custom build"""
         cls = [self.cls_token_id]
