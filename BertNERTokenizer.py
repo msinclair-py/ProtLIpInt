@@ -476,6 +476,8 @@ if __name__ == "__main__":
     seq_parser = lambda seqs: list(map(lambda seq: ' '.join(list(map(lambda aa: three2one.get(aa, None), seq.split(" ") ))), seqs ))    #THREE LETTER -> ONE LETTER
 #     print(np.isin(split_txt[:,0], AA).all())
 
+    duplicates = 10
+
     ##Lipid index dictionary
     lips = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"] #This specific order matters!
     lip2idx = {k:v for v, k in enumerate(lips)}
@@ -486,14 +488,12 @@ if __name__ == "__main__":
 #         seq_nonzero = [[(lip2idx.get(l, None), v) for (l, v) in data[s].items() if isinstance(v, list)] for s in seq]
         seq_nonzero = [[[(lip2idx.get(l, None), v if isinstance(v, list) else [v]*3) for (l, v) in data[s].items()] for s in seq]]
         return seq_nonzero
-    lip_data = lip_index(data) * 
-    print(len(lip_index(data))) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples]
+    lip_data = lip_index(data) * duplicates
+    print(len(lip_data)) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples]
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
 
     #DATA PREPROCESSING
-    duplicates = 10
-    
     split_txt = np.tile(split_txt, (2,1)) #Multiseg-test
     split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
     split_txt[2*len(seq):,2] = "PROC" #Multiseg-test
