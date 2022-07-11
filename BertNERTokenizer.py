@@ -263,6 +263,8 @@ def load_vocab(vocab_file):
 #                 index += 1
 #         return (vocab_file,)
 
+# https://github.com/huggingface/transformers/blob/main/src/transformers/models/bert/tokenization_bert.py
+from transformers.models.bert.tokenization_bert import *
 class BertTokenizer2(PreTrainedTokenizer):
     r"""
     Construct a BERT tokenizer. Based on WordPiece.
