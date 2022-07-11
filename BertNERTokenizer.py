@@ -486,7 +486,7 @@ if __name__ == "__main__":
 #         seq_nonzero = [[(lip2idx.get(l, None), v) for (l, v) in data[s].items() if isinstance(v, list)] for s in seq]
         seq_nonzero = [[(lip2idx.get(l, None), v) for (l, v) in data[s].items()] for s in seq]
         return seq_nonzero
-#     print(lip_index(data))
+    print(lip_index(data))
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
 
