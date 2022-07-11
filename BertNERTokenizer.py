@@ -486,7 +486,7 @@ if __name__ == "__main__":
 #         seq_nonzero = [[(lip2idx.get(l, None), v) for (l, v) in data[s].items() if isinstance(v, list)] for s in seq]
         seq_nonzero = [[(lip2idx.get(l, None), v if isinstance(v, list) else [v]*3) for (l, v) in data[s].items()] for s in seq]
         return seq_nonzero
-    print(lip_index(data))
+    print(len(lip_index(data)))
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
 
@@ -516,7 +516,7 @@ if __name__ == "__main__":
     proper_inputs = [[' '.join(mod) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
     duplicates = 10
     proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
-#     print(proper_inputs)
+    print(len(proper_inputs))
 
     def get_args():
         parser = argparse.ArgumentParser(description='Training')
