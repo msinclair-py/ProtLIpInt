@@ -40,6 +40,10 @@ class SequenceDataset(torch.utils.data.Dataset):
         input_reformats = {'input_ids': input_ids, 'token_type_ids': token_type_ids, 'attention_mask': attention_mask}
         target_reformats = {"labels": self.targets[idx]}
         return input_reformats, target_reformats
+    
+#     @staticmethod
+#     def collate_fn(batch):
+#         _, targets = batch
 
 class NERSequenceDataset(torch.utils.data.Dataset):
     """Protein sequence dataset
