@@ -33,7 +33,7 @@ import inspect
 import functools
 import json
 import itertools
-from dataset import  NERSequenceDataset
+from dataset import SequenceDataset, NERSequenceDataset
 
 """https://colab.research.google.com/drive/1tsiTpC4i26QNdRzBHFfXIOFVToE54-9b?usp=sharing#scrollTo=L8eapLvAiGeY"""
 
@@ -578,7 +578,8 @@ if __name__ == "__main__":
                                   max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
     targets = lip_data
 #     print(inputs)
-    
+    ds = SequenceDataset(inputs, targets)
+    print(ds)
 #     ds = NERSequenceDataset(inputs)
 #     print(ds)
     
