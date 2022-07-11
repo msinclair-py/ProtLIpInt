@@ -489,7 +489,7 @@ if __name__ == "__main__":
         seq_nonzero = [[[(lip2idx.get(l, None), v if isinstance(v, list) else [v]*3) for (l, v) in data[s].items()] for s in seq]]
         return seq_nonzero
     lip_data = lip_index(data) * duplicates
-    print(len(lip_data)) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples]
+    print(len(lip_data[0])) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples]
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
 
@@ -518,7 +518,8 @@ if __name__ == "__main__":
 #     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
     proper_inputs = [[' '.join(mod) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
     proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
-    print(len(proper_inputs))
+#     print(len(proper_inputs))
+    print(modified_slice[0].__len__())
 
     def get_args():
         parser = argparse.ArgumentParser(description='Training')
