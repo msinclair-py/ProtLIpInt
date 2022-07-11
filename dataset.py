@@ -28,7 +28,9 @@ class SequenceDataset(torch.utils.data.Dataset):
     def __init__(self, inputs: Dict[str, torch.Tensor], targets: torch.Tensor) -> torch.utils.data.Dataset:
         super().__init__()
         self.inputs = inputs
+        
         self.targets = targets
+        
     
     def __len__(self):
         return len(self.targets) #train length...
