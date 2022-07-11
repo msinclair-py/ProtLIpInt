@@ -516,7 +516,7 @@ if __name__ == "__main__":
     proper_inputs = [[' '.join(mod) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
     duplicates = 10
     proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
-    print(proper_inputs)
+#     print(proper_inputs)
 
     def get_args():
         parser = argparse.ArgumentParser(description='Training')
@@ -573,7 +573,7 @@ if __name__ == "__main__":
                                   add_special_tokens=True,
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
-    print(inputs)
+#     print(inputs)
     
 #     ds = NERSequenceDataset(inputs)
 #     print(ds)
