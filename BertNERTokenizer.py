@@ -579,7 +579,9 @@ if __name__ == "__main__":
     targets = lip_data
 #     print(inputs)
     ds = SequenceDataset(inputs, targets)
-    print(ds)
+#     print(ds)
+    dl = torch.utils.data.DataLoader(ds)
+    print(iter(dl).next())
 #     ds = NERSequenceDataset(inputs)
 #     print(ds)
     
