@@ -483,7 +483,8 @@ if __name__ == "__main__":
     def lip_index(data: dict):
         seq = list(data.keys()) #e.g. TYR-483-PROA
 #         seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
-        seq_nonzero = [[(lip2idx.get(l, None), v) for (l, v) in data[s].items() if isinstance(v, list)] for s in seq]
+#         seq_nonzero = [[(lip2idx.get(l, None), v) for (l, v) in data[s].items() if isinstance(v, list)] for s in seq]
+        seq_nonzero = [[(lip2idx.get(l, None), v) for (l, v) in data[s].items()] for s in seq]
         return seq_nonzero
 #     print(lip_index(data))
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
@@ -513,7 +514,8 @@ if __name__ == "__main__":
 #     modified_slice = ["[CLS]"] + modified_slice #NOT necessary
 #     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
     proper_inputs = [[' '.join(mod) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
-    proper_inputs = proper_inputs*2
+    duplicates = 10
+    proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
     print(proper_inputs)
 
     def get_args():
