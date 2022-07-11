@@ -489,7 +489,7 @@ if __name__ == "__main__":
         seq_nonzero = [[[(lip2idx.get(l, None), v if isinstance(v, list) else [v]*3) for (l, v) in data[s].items()] for s in seq]]
         return seq_nonzero
     lip_data = lip_index(data) * duplicates
-    print(len(lip_data[0])) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples]
+    print(len(lip_data[0])) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples];;; #172
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
 
@@ -519,7 +519,7 @@ if __name__ == "__main__":
     proper_inputs = [[' '.join(mod) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
     proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
 #     print(len(proper_inputs))
-    print(modified_slice[0].__len__())
+    print(modified_slice[0].__len__()) #172
 
     def get_args():
         parser = argparse.ArgumentParser(description='Training')
@@ -576,6 +576,7 @@ if __name__ == "__main__":
                                   add_special_tokens=True,
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
+    targets = lip_data
 #     print(inputs)
     
 #     ds = NERSequenceDataset(inputs)
