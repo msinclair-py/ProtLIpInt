@@ -265,6 +265,7 @@ def load_vocab(vocab_file):
 
 # https://github.com/huggingface/transformers/blob/main/src/transformers/models/bert/tokenization_bert.py
 from transformers.models.bert.tokenization_bert import *
+from transformers.tokenization_utils import *
 class BertTokenizer2(PreTrainedTokenizer):
     r"""
     Construct a BERT tokenizer. Based on WordPiece.
@@ -461,7 +462,6 @@ class BertTokenizer2(PreTrainedTokenizer):
         return (vocab_file,)
 
 if __name__ == "__main__":      
-    
     with open("sample_output_coeffs.json", "r") as f:
         data = json.load(f)
     
@@ -490,7 +490,7 @@ if __name__ == "__main__":
 #     aa_seg = list(itertools.product(aa, seg))
 
     #DATA PREPROCESSING
-    split_txt = np.tile(split_txt, (3,1)) #Multiseg-test
+    split_txt = np.tile(split_txt, (2,1)) #Multiseg-test
     split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
     split_txt[2*len(seq):,2] = "PROC" #Multiseg-test
     all_resnames, all_segnames, modified_slice = split_txt[:,0].tolist(), split_txt[:,2], []
@@ -513,6 +513,7 @@ if __name__ == "__main__":
 #     modified_slice = ["[CLS]"] + modified_slice #NOT necessary
 #     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
     proper_inputs = [[' '.join(mod) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
+    proper_inputs = proper_inputs*2
     print(proper_inputs)
 
     def get_args():
