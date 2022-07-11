@@ -67,6 +67,7 @@ class NERSequenceDataset(torch.utils.data.Dataset):
 
     @classmethod
     def from_json(cls, filename: str):
+        """WIP: Move functions from BertNERTokenizer.py"""
         assert os.path.split(filename)[-1].split(".")[-1] == "json", "not a json file!" #get extension
         with open(filename, "r") as f:
             data = json.load(filename)
