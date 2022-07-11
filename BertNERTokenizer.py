@@ -461,53 +461,6 @@ class BertTokenizer2(PreTrainedTokenizer):
         return (vocab_file,)
 
 if __name__ == "__main__":      
-    #https://huggingface.co/transformers/v3.0.2/_modules/transformers/tokenization_bert.html#BertTokenizer.build_inputs_with_special_tokens
-    def build_inputs_with_special_tokens(
-        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_2: Optional[List[int]] = None
-    ) -> List[int]:
-        """Custom build"""
-        cls = [self.cls_token_id]
-        sep = [self.sep_token_id]
-
-        if token_ids_1 is None:
-            return [self.cls_token_id] + token_ids_0 + [self.sep_token_id]
-        elif token_ids_2 is None:
-            return cls + token_ids_0 + sep + token_ids_1 + sep
-        else:
-            return cls + token_ids_0 + sep + token_ids_1 + sep + token_ids_2 + sep
-        
-    def get_special_tokens_mask(
-        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_2: Optional[List[int]] = None, already_has_special_tokens: bool = False
-    ) -> List[int]:
-        """Custom build"""
-        if already_has_special_tokens:
-            if token_ids_1 is not None:
-                raise ValueError(
-                    "You should not supply a second sequence if the provided sequence of "
-                    "ids is already formated with special tokens for the model."
-                )
-            return list(map(lambda x: 1 if x in [self.sep_token_id, self.cls_token_id] else 0, token_ids_0))
-
-        if token_ids_1 is None:
-            return [1] + ([0] * len(token_ids_0)) + [1]
-        elif token_ids_2 is None:
-            return [1] + ([0] * len(token_ids_0)) + [1] + ([0] * len(token_ids_1)) + [1]
-        else:
-            return [1] + ([0] * len(token_ids_0)) + [1] + ([0] * len(token_ids_1)) + [1] + ([0] * len(token_ids_2)) + [1]
-        
-    def create_token_type_ids_from_sequences(
-        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, token_ids_2: Optional[List[int]] = None
-    ) -> List[int]:
-        """Custom build"""
-        sep = [self.sep_token_id]
-        cls = [self.cls_token_id]
-        if token_ids_1 is None:
-            return len(cls + token_ids_0 + sep) * [0]
-        elif token_ids_2 is None:
-            return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1]
-        else:
-            return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1] + len(token_ids_2 + sep) * [2]
-        
     
     with open("sample_output_coeffs.json", "r") as f:
         data = json.load(f)
