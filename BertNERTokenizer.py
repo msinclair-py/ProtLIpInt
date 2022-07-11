@@ -561,9 +561,9 @@ if __name__ == "__main__":
 
     hparams = get_args()
     tokenizer=BertTokenizer2.from_pretrained("Rostlab/prot_bert",do_lower_case=False, return_tensors="pt",cache_dir=hparams.load_model_directory)
-    tokenizer.build_inputs_with_special_tokens = build_inputs_with_special_tokens
-    tokenizer.get_special_tokens_mask = get_special_tokens_mask
-    tokenizer.create_token_type_ids_from_sequences = create_token_type_ids_from_sequences
+#     tokenizer.build_inputs_with_special_tokens = build_inputs_with_special_tokens
+#     tokenizer.get_special_tokens_mask = get_special_tokens_mask
+#     tokenizer.create_token_type_ids_from_sequences = create_token_type_ids_from_sequences
     print(tokenizer.create_token_type_ids_from_sequences.__doc__)
 
     inputs = tokenizer.batch_encode_plus(proper_inputs,
