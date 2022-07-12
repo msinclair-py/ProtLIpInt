@@ -25,7 +25,7 @@ import pathlib
 # collections.Counter(dataset["test"]["label"])
 
 class SequenceDataset(torch.utils.data.Dataset):
-    SEGMENT_NAMES = ["PROA", "PROB", "PROC", "PROD", "PROE"]
+    SEGMENT_NAMES = ["PROA", "PROB", "PROC", "PROD", "PROE"] #make global for this class
 
     """Protein sequence dataset"""
     def __init__(self, inputs: Dict[str, torch.Tensor], targets: torch.Tensor) -> torch.utils.data.Dataset:
@@ -63,7 +63,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         """WIP: Move functions from BertNERTokenizer.py
         This is per file of trajectory...
         Must fix!"""
-        print(hparams)
+#         print(hparams)
         max_residue = hparams.max_residue
         
         assert os.path.split(filename)[-1].split(".")[-1] == "json", "not a json file!" #get extension
@@ -91,7 +91,7 @@ class SequenceDataset(torch.utils.data.Dataset):
             seq_nonzero = [[[v if isinstance(v, list) else [v]*3 for (l, v) in data[s].items()] for s in seq]] #duplicates x num_res x 8 x 3
             return seq_nonzero
 #         print(len(lip_data[0])) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples];;; #172
-        print(SequenceDataset.__dict__)
+#         print(SequenceDataset.__dict__)
         segs = SequenceDataset.__dict__["SEGMENT_NAMES"] #use [SEP] for different segment!
 
         ##3. DATA PREPROCESSING for Multi-segment Files
@@ -104,6 +104,9 @@ class SequenceDataset(torch.utils.data.Dataset):
         all_resnames = seq_parser(all_resnames) #[str_with_space_3letter] -> [str_with_space_1letter]
         all_resnames = all_resnames[0].split(" ") #List[str]
         all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP
+        
+        print(all_resnames)
+        
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
         start_idx = 0
         for seg in np.unique(all_segnames):
@@ -132,7 +135,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         resnum_list = SequenceDataset.residue_length_check(filtered_files)
         max_residue = max(resnum_list)
         hparams.max_residue: int = max_residue #set a new attribute for Argparser; maximum residue num across json files!
-        print(hparams.max_residue)
+#         print(hparams.max_residue)
 #         hparams.resnum_list_idx: List[int] = np.arange(len(resnum_list)) #set a new attribute for Argparser
 #         print(potential_files, filtered_files)
         dataset_list = [SequenceDataset.from_json(one_file, hparams) for _, one_file in enumerate(filtered_files)]
