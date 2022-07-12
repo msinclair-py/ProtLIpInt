@@ -103,7 +103,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
         proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
 
-        inputs = self.input_tokenizer(proper_inputs, hparams)
+        inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
         targets = lip_data
         
         return cls(inputs, targets)
