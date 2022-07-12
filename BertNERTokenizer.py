@@ -578,7 +578,7 @@ if __name__ == "__main__":
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
     targets = lip_data
-    print(inputs["input_ids"].shape, targets.shape)
+#     print(inputs["input_ids"].shape, targets.shape)
 #     print(inputs)
     ds = SequenceDataset(inputs, targets)
 #     print(ds)
@@ -591,7 +591,7 @@ if __name__ == "__main__":
     Ds = torch.utils.data.ConcatDataset([ds,ds])
     dl = torch.utils.data.DataLoader(Ds, batch_size=1)
     print(len(dl))
-#     print(iter(dl).next()[0]['input_ids'], iter(dl).next()[1]['labels'].shape)
+    print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape)
     
 #     print(tokenizer.batch_decode(iter(dl).next()[0]['input_ids']))
     
