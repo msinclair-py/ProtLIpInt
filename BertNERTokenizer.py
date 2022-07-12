@@ -489,7 +489,7 @@ if __name__ == "__main__":
         seq_nonzero = [[[v if isinstance(v, list) else [v]*3 for (l, v) in data[s].items()] for s in seq]] #duplicates x num_res x 8 x 3
         return seq_nonzero
     lip_data = lip_index(data) * duplicates
-    lip_data = np.array(lip_data)[:,:-2,...] #duplicates, num_res, 8, 3
+    lip_data = np.array(lip_data)[:,:,...] #duplicates, num_res, 8, 3
     print(len(lip_data[0])) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples];;; #172
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
@@ -517,7 +517,7 @@ if __name__ == "__main__":
 #         proper_inputs.append()
 #     modified_slice = ["[CLS]"] + modified_slice #NOT necessary
 #     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
-    proper_inputs = [[' '.join(mod[:-1]) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
+    proper_inputs = [[' '.join(mod[:]) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
     proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
 #     print(len(proper_inputs))
     print(modified_slice[0].__len__()) #172
@@ -584,8 +584,8 @@ if __name__ == "__main__":
     ds = SequenceDataset.from_json("sample_output_coeffs.json", hparams)
     Ds = torch.utils.data.ConcatDataset([ds0,ds]) #BE careful with merging different residue num datasets!
     dl = torch.utils.data.DataLoader(Ds, batch_size=15)
-#     print(len(dl))
-#     print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape) #RuntimeError: stack expects each tensor to be equal size, but got [345] at entry 0 and [347] at entry 10
+    print(len(dl))
+    print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape) #RuntimeError: stack expects each tensor to be equal size, but got [345] at entry 0 and [347] at entry 10
  
     ds2 = SequenceDataset.from_directory("/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", hparams) #concat dataset instance
     print(len(ds2))
