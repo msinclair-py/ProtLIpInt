@@ -48,11 +48,11 @@ class SequenceDataset(torch.utils.data.Dataset):
                                       add_special_tokens=True,
                                       padding=True, truncation=True, return_tensors="pt",
                                       max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
-        test = tokenizer.batch_encode_plus(["[CLS] [EOS] [SEP] [PAD] [UNK]"],
-                                      add_special_tokens=True,
-                                      padding=True, truncation=True, return_tensors="pt",
-                                      max_length=hparams.max_length)
-        print(tokenizer.vocab)
+#         print(tokenizer.vocab)
+        #('[PAD]', 0), ('[UNK]', 1), ('[CLS]', 2), ('[SEP]', 3), ('[MASK]', 4), ('L', 5), ('A', 6), 
+        #('G', 7), ('V', 8), ('E', 9), ('S', 10), ('I', 11), ('K', 12), ('R', 13), ('D', 14), ('T', 15), 
+        #('P', 16), ('N', 17), ('Q', 18), ('F', 19), ('Y', 20), ('M', 21), ('H', 22), ('C', 23), ('W', 24), 
+        #('X', 25), ('U', 26), ('B', 27), ('Z', 28), ('O', 29)]
         return inputs 
     
     @classmethod
@@ -113,7 +113,7 @@ class SequenceDataset(torch.utils.data.Dataset):
 #         print(proper_inputs)
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
         targets = lip_data
-#         print(inputs, targets)
+#         print(inputs)
         
         return cls(inputs, targets)
 
