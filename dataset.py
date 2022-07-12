@@ -63,7 +63,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         
         seq = list(data.keys()) #e.g. TYR-483-PROA
         split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
-        duplicates = 1 #Fake duplicates for batches (i.e. num files)
+        duplicates = 10 #Fake duplicates for batches (i.e. num files)
 
         ##1. AA Letter Mapping
         AA = ["ALA","ARG","ASN","ASP","CYS","GLU","GLN","GLY","HSD","ILE","LEU","LYS","MET","PHE","PRO","SER","THR","TRP","TYR","VAL"]
@@ -83,7 +83,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 
         ##3. DATA PREPROCESSING for Multi-segment Files
-        split_txt = np.tile(split_txt, (2,1)) #Multiseg-test
+        split_txt = np.tile(split_txt, (1,1)) #Multiseg-test
         split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
         split_txt[2*len(seq):,2] = "PROC" #Multiseg-test
         
