@@ -580,12 +580,12 @@ if __name__ == "__main__":
     targets = lip_data
     
 #     print(inputs["input_ids"].shape, targets.shape)
-    ds0 = SequenceDataset(inputs, targets) #THIS MUST have the same num of residues as other dataset!
-    ds = SequenceDataset.from_json("sample_output_coeffs.json", hparams)
-    Ds = torch.utils.data.ConcatDataset([ds0,ds]) #BE careful with merging different residue num datasets!
-    dl = torch.utils.data.DataLoader(Ds, batch_size=15)
-    print(len(dl), len(iter(dl).next()))
-    print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape) #RuntimeError: stack expects each tensor to be equal size, but got [345] at entry 0 and [347] at entry 10
+#     ds0 = SequenceDataset(inputs, targets) #THIS MUST have the same num of residues as other dataset!
+#     ds = SequenceDataset.from_json("sample_output_coeffs.json", hparams)
+#     Ds = torch.utils.data.ConcatDataset([ds0,ds]) #BE careful with merging different residue num datasets!
+#     dl = torch.utils.data.DataLoader(Ds, batch_size=15)
+#     print(len(dl), len(iter(dl).next()))
+#     print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape) #RuntimeError: stack expects each tensor to be equal size, but got [345] at entry 0 and [347] at entry 10
  
     ds2 = SequenceDataset.from_directory("/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", hparams) #concat dataset instance
     print(len(ds2))
