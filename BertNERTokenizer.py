@@ -583,7 +583,7 @@ if __name__ == "__main__":
     ds = SequenceDataset(inputs, targets)
 #     print(ds)
     dl = torch.utils.data.DataLoader(ds)
-    print(iter(dl).next())
+    print(iter(dl).next()[1]['labels'].shape)
 #     ds = NERSequenceDataset(inputs)
 #     print(ds)
     
