@@ -26,7 +26,10 @@ import pathlib
 
 class SequenceDataset(torch.utils.data.Dataset):
     SEGMENT_NAMES = ["PROA", "PROB", "PROC", "PROD", "PROE"] #make global for this class
-
+    THREE_LETTER_AAS = ["ALA","ARG","ASN","ASP","CYS","GLU","GLN","GLY","HSD","ILE","LEU","LYS","MET","PHE","PRO","SER","THR","TRP","TYR","VAL"]
+    ONE_LETTER_AAS = ["A","R","N","D","C","E","Q","G","H","I","L","K","M","F","P","S","T","W","Y","V"]
+    LIPID_HEAD_GROUPS = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"]
+    
     """Protein sequence dataset"""
     def __init__(self, inputs: Dict[str, torch.Tensor], targets: torch.Tensor) -> torch.utils.data.Dataset:
         self.inputs = inputs
@@ -77,13 +80,13 @@ class SequenceDataset(torch.utils.data.Dataset):
         duplicates = 10 #Fake duplicates for batches (i.e. num files)
 
         ##1. AA Letter Mapping
-        AA = ["ALA","ARG","ASN","ASP","CYS","GLU","GLN","GLY","HSD","ILE","LEU","LYS","MET","PHE","PRO","SER","THR","TRP","TYR","VAL"]
-        aa = ["A","R","N","D","C","E","Q","G","H","I","L","K","M","F","P","S","T","W","Y","V"]
+        AA = SequenceDataset.__dict__["THREE_LETTER_AAS"]
+        aa = SequenceDataset.__dict__["ONE_LETTER_AAS"]
         three2one = {THREE:ONE for THREE, ONE in list(zip(AA,aa))}
         seq_parser = lambda seqs: list(map(lambda seq: ' '.join(list(map(lambda aa: three2one.get(aa, None), seq.split(" ") ))), seqs ))    #THREE LETTER -> ONE LETTER
 
         ##2. Lipid Index Mapping and Extracting Coefficients
-        lips = ["PC","PE","PG","PI","PS","PA","CL","SM","CHOL","OTHERS"] #This specific order matters!
+        lips = SequenceDataset.__dict__["LIPID_HEAD_GROUPS"] #This specific order matters!
         lip2idx = {k:v for v, k in enumerate(lips)}
         idx2lip = {v:k for k, v in lip2idx.items()}
         def lip_index(data: dict):
@@ -105,15 +108,16 @@ class SequenceDataset(torch.utils.data.Dataset):
         all_resnames = all_resnames[0].split(" ") #List[str]
         all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP
         
-        print(all_resnames)
+#         print(all_resnames)
         
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
         start_idx = 0
-        for seg in np.unique(all_segnames):
-            end_idx_p1 = np.sum(all_segnames == seg) + start_idx
+        for idx, seg in enumerate(np.unique(all_segnames)):
+            end_idx_p1 = np.sum(all_segnames == seg) + start_idx if idx != (np.unique(all_segnames).shape[0]-1) else None
             current_slice = all_resnames[slice(start_idx, end_idx_p1)] #+ ["[SEP]"] #need sentence pair encoding (SEP not needed!!)
             modified_slice.append(current_slice) #not extend but append!!!!
             start_idx = end_idx_p1
+            
         proper_inputs = [[' '.join(mod) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
             
         ##4. Fake duplicates: WIP, must be fixed!
