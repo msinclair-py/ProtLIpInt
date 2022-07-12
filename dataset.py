@@ -90,7 +90,7 @@ class SequenceDataset(torch.utils.data.Dataset):
             seq_nonzero = [[[v if isinstance(v, list) else [v]*3 for (l, v) in data[s].items()] for s in seq]] #duplicates x num_res x 8 x 3
             return seq_nonzero
 #         print(len(lip_data[0])) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples];;; #172
-        segs = self.SEGMENT_NAMES #use [SEP] for different segment!
+        segs = SequenceDataset.SEGMENT_NAMES #use [SEP] for different segment!
 
         ##3. DATA PREPROCESSING for Multi-segment Files
         split_txt = np.tile(split_txt, (2,1)) #Multiseg-test
