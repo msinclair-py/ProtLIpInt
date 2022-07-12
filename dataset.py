@@ -58,7 +58,8 @@ class SequenceDataset(torch.utils.data.Dataset):
         with open(filename, "r") as f:
             data = json.load(f)
         assert isinstance(data, dict), "wrong data format!"
-    
+        print(data)
+        
         seq = list(data.keys()) #e.g. TYR-483-PROA
         split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
         duplicates = 10 #Fake duplicates for batches (i.e. num files)
