@@ -16,7 +16,6 @@ from collections import OrderedDict
 from torch import optim
 from torch.utils.data import DataLoader
 import argparse
-
 import collections
 from typing import *
 
@@ -42,10 +41,15 @@ class SequenceDataset(torch.utils.data.Dataset):
         return input_reformats, target_reformats
     
     @staticmethod
-    def for_json_method()
-    
+    def input_tokenizer(proper_inputs: List[str], hparams: argparse.ArgumentParser):
+        tokenizer=BertTokenizer.from_pretrained("Rostlab/prot_bert",do_lower_case=False, return_tensors="pt",cache_dir=hparams.load_model_directory)
+        inputs = tokenizer.batch_encode_plus(proper_inputs,
+                                      add_special_tokens=True,
+                                      padding=True, truncation=True, return_tensors="pt",
+                                      max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
+        
     @classmethod
-    def from_json(cls, filename: str, hparam: argparse.ArgumentParser):
+    def from_json(cls, filename: str, hparams: argparse.ArgumentParser):
         """WIP: Move functions from BertNERTokenizer.py
         This is per file of trajectory...
         Must fix!"""
@@ -97,8 +101,11 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = lip_index(data) * duplicates
         lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
         proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
-#         print(modified_slice[0].__len__()) #172
-        return cls(
+
+        inputs = self.input_tokenizer(proper_inputs, hparams)
+        targets = lip_data
+        
+        return cls(inputs, targets)
 
 
 # class NERSequenceDataset(torch.utils.data.Dataset):
