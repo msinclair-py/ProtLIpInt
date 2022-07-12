@@ -88,7 +88,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 
         ##3. DATA PREPROCESSING for Multi-segment Files
-        split_txt = np.tile(split_txt, (1,1)) #Multiseg-test
+        split_txt = np.tile(split_txt, (2,1)) #Multiseg-test
         split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
         split_txt[2*len(seq):,2] = "PROC" #Multiseg-test
         
