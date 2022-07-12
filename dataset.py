@@ -123,7 +123,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         potential_files = os.listdir(directory)
         filtered_files = list(filter(lambda inp: os.path.splitext(inp)[1] == ".json", potential_files))
         print(potential_files, filtered_files)
-        dataset_list = [SequenceDataset.from_json(one_file) for one_file in filtered_files]
+        dataset_list = [SequenceDataset.from_json(one_file, hparams) for one_file in filtered_files]
         concat_dataset = torch.utils.data.ConcatDataset(dataset_list) #WIP; must deal with different resnum datasets!
         return concat_dataset
 
