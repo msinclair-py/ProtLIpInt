@@ -486,9 +486,10 @@ if __name__ == "__main__":
         seq = list(data.keys()) #e.g. TYR-483-PROA
 #         seq_nonzero = list(map(lambda s: list(filter(lambda l: l, data[s].values())), seq)) #List[List of COEFF]
 #         seq_nonzero = [[(lip2idx.get(l, None), v) for (l, v) in data[s].items() if isinstance(v, list)] for s in seq]
-        seq_nonzero = [[[(lip2idx.get(l, None), v if isinstance(v, list) else [v]*3) for (l, v) in data[s].items()] for s in seq]]
+        seq_nonzero = [[[v if isinstance(v, list) else [v]*3 for (l, v) in data[s].items()] for s in seq]] #duplicates x num_res x 8 x 3
         return seq_nonzero
     lip_data = lip_index(data) * duplicates
+    lip_data = np.array(lip_data).reshape(duplicates, len(seq), -1) #duplicates, num_res, 24
     print(len(lip_data[0])) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples];;; #172
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
