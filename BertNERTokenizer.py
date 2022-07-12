@@ -489,7 +489,7 @@ if __name__ == "__main__":
         seq_nonzero = [[[v if isinstance(v, list) else [v]*3 for (l, v) in data[s].items()] for s in seq]] #duplicates x num_res x 8 x 3
         return seq_nonzero
     lip_data = lip_index(data) * duplicates
-    lip_data = np.array(lip_data) #duplicates, num_res, 8, 3
+    lip_data = np.array(lip_data)[:,:-2,...] #duplicates, num_res, 8, 3
     print(len(lip_data[0])) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples];;; #172
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
@@ -517,7 +517,7 @@ if __name__ == "__main__":
 #         proper_inputs.append()
 #     modified_slice = ["[CLS]"] + modified_slice #NOT necessary
 #     modified_slice.pop() #last SEP token should be gone! #<SEQ1 + SEP + SEQ2 + SEP + SEQ3 ...>
-    proper_inputs = [[' '.join(mod) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
+    proper_inputs = [[' '.join(mod[:-1]) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
     proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
 #     print(len(proper_inputs))
     print(modified_slice[0].__len__()) #172
@@ -578,7 +578,7 @@ if __name__ == "__main__":
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
     targets = lip_data
-#     print(inputs["input_ids"].shape, targets.shape)
+    print(inputs["input_ids"].shape, targets.shape)
 #     print(inputs)
     ds = SequenceDataset(inputs, targets)
 #     print(ds)
