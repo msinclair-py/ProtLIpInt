@@ -122,12 +122,22 @@ class SequenceDataset(torch.utils.data.Dataset):
     def from_directory(cls, directory: Union[pathlib.Path, str], hparams: argparse.ArgumentParser):
         potential_files = os.listdir(directory)
         filtered_files = list(filter(lambda inp: os.path.splitext(inp)[1] == ".json", potential_files))
+        resnum_list = SequenceDataset.residue_length_check(filtered_files)
+        hparams.resnum_list: List[int] = resnum_list #set a new attribute for Argparser
 #         print(potential_files, filtered_files)
         dataset_list = [SequenceDataset.from_json(one_file, hparams) for one_file in filtered_files]
         concat_dataset = torch.utils.data.ConcatDataset(dataset_list) #WIP; must deal with different resnum datasets!
         return concat_dataset
-
-
+    
+    @staticmethod
+    def residue_length_check(filtered_files: List[str]):
+        resnum_list = []
+        for one_file in filtered_files:
+            with open(one_file, "r") as f:
+                data = json.load(f)
+            resnum_list.append(len( list(data.keys()) ))
+        return resnum_list
+                
 # class NERSequenceDataset(torch.utils.data.Dataset):
 #     """Protein sequence dataset
 #     WIP!"""
