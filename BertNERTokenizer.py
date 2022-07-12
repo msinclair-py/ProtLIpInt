@@ -578,7 +578,7 @@ if __name__ == "__main__":
                                   padding=True, truncation=True, return_tensors="pt",
                                   max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
     targets = lip_data
-    
+    print(targets.shape)
 #     print(inputs)
     ds = SequenceDataset(inputs, targets)
 #     print(ds)
