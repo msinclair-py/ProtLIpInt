@@ -105,6 +105,7 @@ class SequenceDataset(torch.utils.data.Dataset):
 
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
         targets = lip_data
+        print(inputs, targets)
         
         return cls(inputs, targets)
 
