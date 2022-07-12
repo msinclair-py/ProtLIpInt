@@ -30,7 +30,8 @@ class SequenceDataset(torch.utils.data.Dataset):
         super().__init__()
         self.inputs = inputs
         self.targets = targets
-
+        self.SEGMENT_NAMES = ["PROA", "PROB", "PROC", "PROD", "PROE"]
+        
     def __len__(self):
         return len(self.targets) #train length...
 
@@ -61,6 +62,8 @@ class SequenceDataset(torch.utils.data.Dataset):
         """WIP: Move functions from BertNERTokenizer.py
         This is per file of trajectory...
         Must fix!"""
+        max_residue = hparams.max_residue
+        
         assert os.path.split(filename)[-1].split(".")[-1] == "json", "not a json file!" #get extension
         with open(filename, "r") as f:
             data = json.load(f)
@@ -86,7 +89,7 @@ class SequenceDataset(torch.utils.data.Dataset):
             seq_nonzero = [[[v if isinstance(v, list) else [v]*3 for (l, v) in data[s].items()] for s in seq]] #duplicates x num_res x 8 x 3
             return seq_nonzero
 #         print(len(lip_data[0])) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples];;; #172
-        segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
+        segs = self.SEGMENT_NAMES #use [SEP] for different segment!
 
         ##3. DATA PREPROCESSING for Multi-segment Files
         split_txt = np.tile(split_txt, (2,1)) #Multiseg-test
@@ -97,6 +100,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
         all_resnames = seq_parser(all_resnames) #[str_with_space_3letter] -> [str_with_space_1letter]
         all_resnames = all_resnames[0].split(" ") #List[str]
+        all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
         start_idx = 0
         for seg in np.unique(all_segnames):
@@ -123,9 +127,12 @@ class SequenceDataset(torch.utils.data.Dataset):
         potential_files = os.listdir(directory)
         filtered_files = list(filter(lambda inp: os.path.splitext(inp)[1] == ".json", potential_files))
         resnum_list = SequenceDataset.residue_length_check(filtered_files)
-        hparams.resnum_list: List[int] = resnum_list #set a new attribute for Argparser
+        max_residue = max(resnum_list)
+        hparams.max_residue: int = max_residue #set a new attribute for Argparser; maximum residue num across json files!
+            
+#         hparams.resnum_list_idx: List[int] = np.arange(len(resnum_list)) #set a new attribute for Argparser
 #         print(potential_files, filtered_files)
-        dataset_list = [SequenceDataset.from_json(one_file, hparams) for one_file in filtered_files]
+        dataset_list = [SequenceDataset.from_json(one_file, hparams) for _, one_file in enumerate(filtered_files)]
         concat_dataset = torch.utils.data.ConcatDataset(dataset_list) #WIP; must deal with different resnum datasets!
         return concat_dataset
     
