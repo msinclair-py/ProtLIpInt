@@ -489,7 +489,7 @@ if __name__ == "__main__":
         seq_nonzero = [[[v if isinstance(v, list) else [v]*3 for (l, v) in data[s].items()] for s in seq]] #duplicates x num_res x 8 x 3
         return seq_nonzero
     lip_data = lip_index(data) * duplicates
-    lip_data = np.array(lip_data).reshape(duplicates, len(seq), -1) #duplicates, num_res, 24
+    lip_data = np.array(lip_data) #duplicates, num_res, 8, 3
     print(len(lip_data[0])) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples];;; #172
     segs = ["PROA","PROB","PROC","PROD"] #use [SEP] for different segment!
 #     aa_seg = list(itertools.product(aa, seg))
