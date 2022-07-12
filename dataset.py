@@ -53,7 +53,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         inputs = tokenizer.batch_encode_plus(proper_inputs,
                                       add_special_tokens=True,
                                       padding=True, truncation=True, return_tensors="pt",
-                                      max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
+                                      max_length=hparams.max_length, return_special_tokens_masks=True) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
 #         print(tokenizer.vocab)
         #('[PAD]', 0), ('[UNK]', 1), ('[CLS]', 2), ('[SEP]', 3), ('[MASK]', 4), ('L', 5), ('A', 6), 
         #('G', 7), ('V', 8), ('E', 9), ('S', 10), ('I', 11), ('K', 12), ('R', 13), ('D', 14), ('T', 15), 
