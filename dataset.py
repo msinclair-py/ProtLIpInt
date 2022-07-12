@@ -58,7 +58,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         with open(filename, "r") as f:
             data = json.load(f)
         assert isinstance(data, dict), "wrong data format!"
-        print(data)
+#         print(data)
         
         seq = list(data.keys()) #e.g. TYR-483-PROA
         split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
@@ -104,6 +104,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
         proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
 
+        print(proper_inputs)
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
         targets = lip_data
         print(inputs, targets)
