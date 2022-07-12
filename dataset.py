@@ -43,9 +43,14 @@ class SequenceDataset(torch.utils.data.Dataset):
         target_reformats = {"labels": self.targets[idx]}
         return input_reformats, target_reformats
     
-#     @staticmethod
-#     def collate_fn(batch):
-#         _, targets = batch
+    @classmethod
+    def from_json(cls, filename: str):
+        """WIP: Move functions from BertNERTokenizer.py"""
+        assert os.path.split(filename)[-1].split(".")[-1] == "json", "not a json file!" #get extension
+        with open(filename, "r") as f:
+            data = json.load(filename)
+        assert isinstance(data, dict), "wrong data format!"
+        return cls(data)    
 
 class NERSequenceDataset(torch.utils.data.Dataset):
     """Protein sequence dataset
