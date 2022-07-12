@@ -19,6 +19,7 @@ import argparse
 import collections
 from typing import *
 import json
+import pathlib
 
 #https://github.com/HelloJocelynLu/t5chem/blob/main/t5chem/archived/MultiTask.py for more info
 # collections.Counter(dataset["test"]["label"])
@@ -116,6 +117,14 @@ class SequenceDataset(torch.utils.data.Dataset):
 #         print(inputs)
         
         return cls(inputs, targets)
+    
+    @classmethod
+    def from_directory(cls, directory: Union[pathlib.Path, str], hparams: argparse.ArgumentParser):
+        potential_files = os.path.listdir(directory)
+        filtered_files = list(filter(lambda inp: os.path.splitext(inp) == ".json", potential_files))
+        dataset_list = [SequenceDataset.from_json(one_file) for one_file in filtered_files]
+        concat_dataset = torch.utils.data.ConcatDataset(dataset_list) #WIP; must deal with different resnum datasets!
+        return concat_dataset
 
 
 # class NERSequenceDataset(torch.utils.data.Dataset):
