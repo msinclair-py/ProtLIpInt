@@ -588,7 +588,7 @@ if __name__ == "__main__":
 #     print(ds)
     
     ds = SequenceDataset.from_json("sample_output_coeffs.json", hparams)
-    dl = torch.utils.data.DataLoader(ds, batch_size=1)
+    dl = torch.utils.data.DataLoader(ds, batch_size=2)
     print(iter(dl).next()[0]['input_ids'], iter(dl).next()[1]['labels'].shape)
     
     print(tokenizer.batch_decode(iter(dl).next()[0]['input_ids']))
