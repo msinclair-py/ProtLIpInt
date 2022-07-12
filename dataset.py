@@ -52,7 +52,7 @@ class SequenceDataset(torch.utils.data.Dataset):
                                       add_special_tokens=True,
                                       padding=True, truncation=True, return_tensors="pt",
                                       max_length=hparams.max_length)
-        print(test)
+        print(tokenizer.special_tokens)
         return inputs 
     
     @classmethod
