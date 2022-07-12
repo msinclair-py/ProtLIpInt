@@ -25,11 +25,12 @@ from typing import *
 
 class SequenceDataset(torch.utils.data.Dataset):
     """Protein sequence dataset"""
-    def __init__(self, inputs: Dict[str, torch.Tensor], targets: torch.Tensor) -> torch.utils.data.Dataset:
+    def __init__(self, inputs: Dict[str, torch.Tensor], targets: torch.Tensor, hparam: argparse.ArgumentParser) -> torch.utils.data.Dataset:
         super().__init__()
         self.inputs = inputs
         self.targets = targets
-        
+        self.hparam = hparam
+
     def __len__(self):
         return len(self.targets) #train length...
 
@@ -41,8 +42,10 @@ class SequenceDataset(torch.utils.data.Dataset):
         target_reformats = {"labels": self.targets[idx]}
         return input_reformats, target_reformats
     
+    def for_json_method()
+    
     @classmethod
-    def from_json(cls, filename: str):
+    def from_json(cls, filename: str, hparam):
         """WIP: Move functions from BertNERTokenizer.py
         This is per file of trajectory...
         Must fix!"""
