@@ -587,7 +587,9 @@ if __name__ == "__main__":
 #     ds = NERSequenceDataset(inputs)
 #     print(ds)
     
-    
+    ds = SequenceDataset.from_json("sample_output_coeffs.json")
+    dl = torch.utils.data.DataLoader(ds)
+    print(iter(dl).next()[0]['input_ids'].shape)
     
     
 
