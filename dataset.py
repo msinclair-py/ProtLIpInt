@@ -25,11 +25,12 @@ import pathlib
 # collections.Counter(dataset["test"]["label"])
 
 class SequenceDataset(torch.utils.data.Dataset):
+    SEGMENT_NAMES = ["PROA", "PROB", "PROC", "PROD", "PROE"]
+
     """Protein sequence dataset"""
     def __init__(self, inputs: Dict[str, torch.Tensor], targets: torch.Tensor) -> torch.utils.data.Dataset:
         self.inputs = inputs
         self.targets = targets
-        self.SEGMENT_NAMES = ["PROA", "PROB", "PROC", "PROD", "PROE"]
         super().__init__()
 
     def __len__(self):
