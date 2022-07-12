@@ -588,8 +588,8 @@ if __name__ == "__main__":
 #     print(ds)
     
     ds = SequenceDataset.from_json("sample_output_coeffs.json", hparams)
-    dl = torch.utils.data.DataLoader(ds, batch_size=3)
-    print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape)
+    dl = torch.utils.data.DataLoader(ds, batch_size=1)
+    print(iter(dl).next()[0]['input_ids'], iter(dl).next()[1]['labels'].shape)
     
     
 
