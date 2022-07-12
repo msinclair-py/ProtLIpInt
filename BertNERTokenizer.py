@@ -580,15 +580,15 @@ if __name__ == "__main__":
     targets = lip_data
     print(inputs["input_ids"].shape, targets.shape)
 #     print(inputs)
-    ds = SequenceDataset(inputs, targets)
+    ds0 = SequenceDataset(inputs, targets)
 #     print(ds)
-    dl = torch.utils.data.DataLoader(ds)
+#     dl = torch.utils.data.DataLoader(ds)
 #     print(iter(dl).next()[0]['input_ids'].shape)
 #     ds = NERSequenceDataset(inputs)
 #     print(ds)
     
     ds = SequenceDataset.from_json("sample_output_coeffs.json", hparams)
-    Ds = torch.utils.data.ConcatDataset([ds,ds])
+    Ds = torch.utils.data.ConcatDataset([ds0,ds])
     dl = torch.utils.data.DataLoader(Ds, batch_size=1)
     print(len(dl))
     print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape)
