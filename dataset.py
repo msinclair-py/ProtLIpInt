@@ -56,7 +56,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         Must fix!"""
         assert os.path.split(filename)[-1].split(".")[-1] == "json", "not a json file!" #get extension
         with open(filename, "r") as f:
-            data = json.load(filename)
+            data = json.load(f)
         assert isinstance(data, dict), "wrong data format!"
     
         seq = list(data.keys()) #e.g. TYR-483-PROA
