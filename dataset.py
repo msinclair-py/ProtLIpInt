@@ -48,12 +48,12 @@ class SequenceDataset(torch.utils.data.Dataset):
                                       add_special_tokens=True,
                                       padding=True, truncation=True, return_tensors="pt",
                                       max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
-        test = tokenizer.batch_encode_plus(["[CLS] [EOS] [SEP] [PAD]"],
+        test = tokenizer.batch_encode_plus(["[CLS] [EOS] [SEP] [PAD] [UNK]"],
                                       add_special_tokens=True,
                                       padding=True, truncation=True, return_tensors="pt",
                                       max_length=hparams.max_length)
         print(test)
-        return inputs
+        return inputs 
     
     @classmethod
     def from_json(cls, filename: str, hparams: argparse.ArgumentParser):
