@@ -62,6 +62,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         """WIP: Move functions from BertNERTokenizer.py
         This is per file of trajectory...
         Must fix!"""
+        print(hparams)
         max_residue = hparams.max_residue
         
         assert os.path.split(filename)[-1].split(".")[-1] == "json", "not a json file!" #get extension
@@ -129,7 +130,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         resnum_list = SequenceDataset.residue_length_check(filtered_files)
         max_residue = max(resnum_list)
         hparams.max_residue: int = max_residue #set a new attribute for Argparser; maximum residue num across json files!
-            
+        print(hparams.max_residue)
 #         hparams.resnum_list_idx: List[int] = np.arange(len(resnum_list)) #set a new attribute for Argparser
 #         print(potential_files, filtered_files)
         dataset_list = [SequenceDataset.from_json(one_file, hparams) for _, one_file in enumerate(filtered_files)]
