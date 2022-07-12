@@ -63,7 +63,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         
         seq = list(data.keys()) #e.g. TYR-483-PROA
         split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
-        duplicates = 10 #Fake duplicates for batches (i.e. num files)
+        duplicates = 1 #Fake duplicates for batches (i.e. num files)
 
         ##1. AA Letter Mapping
         AA = ["ALA","ARG","ASN","ASP","CYS","GLU","GLN","GLY","HSD","ILE","LEU","LYS","MET","PHE","PRO","SER","THR","TRP","TYR","VAL"]
