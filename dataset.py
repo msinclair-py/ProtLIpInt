@@ -48,7 +48,8 @@ class SequenceDataset(torch.utils.data.Dataset):
                                       add_special_tokens=True,
                                       padding=True, truncation=True, return_tensors="pt",
                                       max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
-        
+        return inputs
+    
     @classmethod
     def from_json(cls, filename: str, hparams: argparse.ArgumentParser):
         """WIP: Move functions from BertNERTokenizer.py
@@ -104,10 +105,10 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
         proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
 
-        print(proper_inputs)
+#         print(proper_inputs)
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
         targets = lip_data
-        print(inputs, targets)
+#         print(inputs, targets)
         
         return cls(inputs, targets)
 
