@@ -134,7 +134,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         filtered_files = list(filter(lambda inp: os.path.splitext(inp)[1] == ".json", potential_files))
         resnum_list = SequenceDataset.residue_length_check(filtered_files)
 #         max_residue = max(resnum_list)
-        max_residue = 300
+        max_residue = 400
         hparams.max_residue: int = max_residue #set a new attribute for Argparser; maximum residue num across json files!
 #         print(hparams.max_residue)
 #         hparams.resnum_list_idx: List[int] = np.arange(len(resnum_list)) #set a new attribute for Argparser
