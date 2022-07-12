@@ -584,10 +584,11 @@ if __name__ == "__main__":
     ds = SequenceDataset.from_json("sample_output_coeffs.json", hparams)
     Ds = torch.utils.data.ConcatDataset([ds0,ds]) #BE careful with merging different residue num datasets!
     dl = torch.utils.data.DataLoader(Ds, batch_size=15)
-    print(len(dl))
-    print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape) #RuntimeError: stack expects each tensor to be equal size, but got [345] at entry 0 and [347] at entry 10
+#     print(len(dl))
+#     print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape) #RuntimeError: stack expects each tensor to be equal size, but got [345] at entry 0 and [347] at entry 10
 
-    
+    ds2 = SequenceDataset.from_directory("/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", hparams)
+    print(ds2)
     
     
 
