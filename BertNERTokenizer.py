@@ -33,7 +33,7 @@ import inspect
 import functools
 import json
 import itertools
-from dataset import SequenceDataset, NERSequenceDataset
+from dataset import SequenceDataset
 
 """https://colab.research.google.com/drive/1tsiTpC4i26QNdRzBHFfXIOFVToE54-9b?usp=sharing#scrollTo=L8eapLvAiGeY"""
 
