@@ -135,7 +135,7 @@ class SequenceDataset(torch.utils.data.Dataset):
 #         print(proper_inputs)
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
         targets = lip_data
-#         print(inputs, targets.shape)
+        print(inputs, targets.shape)
         
         return cls(inputs, targets)
     
