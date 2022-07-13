@@ -121,14 +121,17 @@ class SequenceDataset(torch.utils.data.Dataset):
         proper_inputs = [[' '.join(mod) for mod in modified_slice]] if len(modified_slice) > 1 else [' '.join(mod) for mod in modified_slice] #[List[seq_wo_sep]] for batch_encode_plus
             
         ##4. Fake duplicates: WIP, must be fixed!
-        lip_data = lip_index(data) * duplicates
-        lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
         proper_inputs = proper_inputs * duplicates #List[10 lists of sent pairs]
+        lip_data = lip_index(data)  #[list(num_res, 8, 3)]
+        lip_data = lip_data * duplicates
+        lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
+        pad_to_lip = np.zeros((max_residue - len(all_resnames), *lip_data.shape[-2:])) #(pad_to_lip, 8, 3)
+        lip_data = np.concatenate((lip_data, pad_to_lip), axis=1) #make (duplicates, num_res+pad_to_lip, 8, 3)
 
 #         print(proper_inputs)
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
         targets = lip_data
-        print(inputs)
+        print(inputs, targets.shape)
         
         return cls(inputs, targets)
     
