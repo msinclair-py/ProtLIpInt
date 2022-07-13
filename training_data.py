@@ -2,7 +2,7 @@ import argparse, glob, itertools, json, os, re, shutil, sys
 import MDAnalysis as mda
 from MDAnalysis.analysis.base import AnalysisBase
 import numpy as np
-import matplotlib.pyplot as plt
+import ray
 
 #####################
 ## RUNTIME OPTIONS ##
@@ -33,10 +33,6 @@ parser.add_argument('-e', '--seg', dest='seg', default='MEMB',
 parser.add_argument('-t', '--threads', dest='cpu', default=os.cpu_count()*0.75,
 			    help='Number of cpu cores for calculations.\
                                 Defaults to 75 percent ncpus.')
-parser.add_argument('-mp', '--multiprocessing', dest='multi', default='ray',
-                            choices=['multiprocessing','ray'], 
-                            help='Which multiprocessing library to use. \
-                                Ray appears to be faster.')
 parser.add_argument('-ff', '--first', dest='first', default=1,
                             help='First traj to load. Defaults to all trajs.')
 parser.add_argument('-lf', '--last', dest='last', default=None,
@@ -58,7 +54,6 @@ minimum_bound = int(args.min)
 dcd = args.dcd if args.dcd else system
 segname = args.seg
 n_workers = int(args.cpu)
-multi = args.multi
 first = int(args.first) - 1
 last = int(args.last) if args.last else args.last
 sim = args.sim
@@ -409,6 +404,7 @@ def display_hack():
     sys.stdout.write(' ')
     sys.stdout.flush()
 
+@ray.remote
 def parallelize_run(analysis, n_workers, worker_id):
     analysis.run(start=worker_id, step=n_workers, verbose=not worker_id)
     return analysis
@@ -418,20 +414,10 @@ params = list(zip(itertools.repeat(lipid_analysis),
                 range(n_workers)))
 
 if __name__ == '__main__':
+    ray.init()
     
-    if multi == 'multiprocessing':
-        from multiprocessing import Pool
-        pool = Pool(processes=n_workers, initializer=display_hack)
-        analyses = pool.starmap(parallelize_run, params)
-        pool.close()
-
-    else:
-        import ray
-        ray.init()
-        parallelize_run = ray.remote(parallelize_run)    
-        
-        futures = [parallelize_run.remote(*par) for par in params]
-        analyses = ray.get(futures)
+    futures = [parallelize_run.remote(*par) for par in params]
+    analyses = ray.get(futures)
     
     # dump data into files for checkpointing purposes
     n_frames = [partial_analysis.n_frames for partial_analysis in analyses]
