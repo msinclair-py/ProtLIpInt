@@ -106,6 +106,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
         all_resnames = seq_parser(all_resnames) #[str_with_space_3letter] -> [str_with_space_1letter]
         all_resnames = all_resnames[0].split(" ") #List[str]
+        print(len(all_resnames))
         all_resnames = all_resnames + (max_residue - len(seq)) * ["[PAD]"] #WIP
         
         print(max_residue, len(all_resnames), len(seq))
@@ -126,16 +127,15 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = lip_data * duplicates
         lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
         pad_to_lip = np.zeros((max_residue - len(seq), *lip_data.shape[-2:])) #(pad_to_lip, 8, 3)
-        print(pad_to_lip.shape, (max_residue - len(seq)))
+#         print(pad_to_lip.shape, (max_residue - len(seq)))
         pad_to_lip = np.broadcast_to(pad_to_lip, (len(proper_inputs), *pad_to_lip.shape)) #(duplicates, pad_to_lip, 8, 3)
-        print(pad_to_lip.shape)
-
+#         print(pad_to_lip.shape)
         lip_data = np.concatenate((lip_data, pad_to_lip), axis=1) #make (duplicates, num_res+pad_to_lip, 8, 3)
 
 #         print(proper_inputs)
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
         targets = lip_data
-        print(inputs, targets.shape)
+#         print(inputs, targets.shape)
         
         return cls(inputs, targets)
     
