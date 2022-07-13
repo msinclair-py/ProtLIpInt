@@ -108,7 +108,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         all_resnames = all_resnames[0].split(" ") #List[str]
         print(len(all_resnames))
         all_resnames = all_resnames + (max_residue - len(seq)) * ["[PAD]"] #WIP
-        
+        print((max_residue - len(seq)))
         print(max_residue, all_resnames, len(all_resnames), len(seq))
         
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
