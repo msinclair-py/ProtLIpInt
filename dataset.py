@@ -75,7 +75,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         assert isinstance(data, dict), "wrong data format!"
 #         print(data)
         
-        seq = list(data.keys()) #e.g. TYR-483-PROA
+        seq = list(data.keys()) #e.g. TYR-483-PROA; len(seq) = num_res
         split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
         duplicates = 10 #Fake duplicates for batches (i.e. num files)
 
@@ -106,9 +106,9 @@ class SequenceDataset(torch.utils.data.Dataset):
         all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
         all_resnames = seq_parser(all_resnames) #[str_with_space_3letter] -> [str_with_space_1letter]
         all_resnames = all_resnames[0].split(" ") #List[str]
-        all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP
+        all_resnames = all_resnames + (max_residue - len(seq)) * ["[PAD]"] #WIP
         
-        print(max_residue, len(all_resnames))
+#         print(max_residue, len(all_resnames))
         
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
         start_idx = 0
@@ -126,7 +126,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = lip_data * duplicates
         lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
         pad_to_lip = np.zeros((max_residue - len(all_resnames), *lip_data.shape[-2:])) #(pad_to_lip, 8, 3)
-        print(pad_to_lip.shape, (max_residue - len(all_resnames)))
+        print(pad_to_lip.shape, (max_residue - len(seq)))
         pad_to_lip = np.broadcast_to(pad_to_lip, (len(proper_inputs), *pad_to_lip.shape)) #(duplicates, pad_to_lip, 8, 3)
         print(pad_to_lip.shape)
 
