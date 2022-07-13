@@ -125,7 +125,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = lip_index(data)  #[list(num_res, 8, 3)]
         lip_data = lip_data * duplicates
         lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
-        pad_to_lip = np.zeros((max_residue - len(all_resnames), *lip_data.shape[-2:])) #(pad_to_lip, 8, 3)
+        pad_to_lip = np.zeros((max_residue - len(seq), *lip_data.shape[-2:])) #(pad_to_lip, 8, 3)
         print(pad_to_lip.shape, (max_residue - len(seq)))
         pad_to_lip = np.broadcast_to(pad_to_lip, (len(proper_inputs), *pad_to_lip.shape)) #(duplicates, pad_to_lip, 8, 3)
         print(pad_to_lip.shape)
