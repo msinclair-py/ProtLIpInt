@@ -106,9 +106,9 @@ class SequenceDataset(torch.utils.data.Dataset):
         all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
         all_resnames = seq_parser(all_resnames) #[str_with_space_3letter] -> [str_with_space_1letter]
         all_resnames = all_resnames[0].split(" ") #List[str]
-        print(len(all_resnames))
-        all_resnames = all_resnames + (max_residue - len(seq)) * ["[PAD]"] #WIP
-        print((max_residue - len(seq)))
+#         print(len(all_resnames))
+        all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP
+#         print((max_residue - len(seq)))
         print(max_residue, all_resnames, len(all_resnames), len(seq))
         
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
@@ -126,7 +126,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = lip_index(data)  #[list(num_res, 8, 3)]
         lip_data = lip_data * duplicates
         lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
-        pad_to_lip = np.zeros((max_residue - len(seq), *lip_data.shape[-2:])) #(pad_to_lip, 8, 3)
+        pad_to_lip = np.zeros((len(all_resnames) - lip_data.shape[1], *lip_data.shape[-2:])) #(pad_to_lip, 8, 3)
 #         print(pad_to_lip.shape, (max_residue - len(seq)))
         pad_to_lip = np.broadcast_to(pad_to_lip, (len(proper_inputs), *pad_to_lip.shape)) #(duplicates, pad_to_lip, 8, 3)
 #         print(pad_to_lip.shape)
