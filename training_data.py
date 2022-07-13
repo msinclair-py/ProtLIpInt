@@ -1,15 +1,8 @@
-import argparse
+import argparse, glob, itertools, json, os, re, shutil, sys
 import MDAnalysis as mda
 from MDAnalysis.analysis.base import AnalysisBase
 import numpy as np
-import itertools
-import glob
-import re
-import sys
-import os
-import json
 import matplotlib.pyplot as plt
-import collections
 
 #####################
 ## RUNTIME OPTIONS ##
@@ -68,10 +61,11 @@ n_workers = int(args.cpu)
 multi = args.multi
 first = int(args.first) - 1
 last = int(args.last) if args.last else args.last
+sim = args.sim
 
 file_extensions = {'namd': ['psf','dcd'], 'gromacs': ['gro','xtc'], 
                     'hmmm': ['psf','dcd'], 'martini': ['gro','xtc']}
-struc, traj = file_extensions[args.sim]
+struc, traj = file_extensions[sim]
 
 # build custom data structure
 class LipidContacts(AnalysisBase):
@@ -338,9 +332,9 @@ def get_binding_profile(pairdata, smoothing_cutoff = 3):
     return events
 
 
-def merge_data(nJSONs):
+def merge_data(nJSONs, outpath: str):
     for i in range(nJSONs):
-        with open(f'{outpath}/datafiles/raw_interactions{i}.json', 'r') as infile:
+        with open(f'{outpath}/raw_interactions{i}.json', 'r') as infile:
             data = json.load(infile)
 
         # this means we are appending data to the final data structure
@@ -377,7 +371,7 @@ def key_to_json(data):
     raise TypeError
 
 
-def to_json(data):
+def to_json(data: dict) -> dict:
     if data is None or isinstance(data, (bool, int, tuple, range, str, list)):
         return data
     if isinstance(data, (set, frozenset)):
@@ -387,7 +381,7 @@ def to_json(data):
     raise TypeError
 
 
-def natural_sort(l): 
+def natural_sort(l: list) -> list: 
 	convert = lambda text: int(text) if text.isdigit() else text.lower()
 	alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
 	return sorted(l, key=alphanum_key)
@@ -414,7 +408,6 @@ lipid_analysis = LipidContacts(protein, lipids, cutoff = contact_distance,
 def display_hack():
     sys.stdout.write(' ')
     sys.stdout.flush()
-
 
 def parallelize_run(analysis, n_workers, worker_id):
     analysis.run(start=worker_id, step=n_workers, verbose=not worker_id)
@@ -443,13 +436,23 @@ if __name__ == '__main__':
     # dump data into files for checkpointing purposes
     n_frames = [partial_analysis.n_frames for partial_analysis in analyses]
     data = [partial_analysis.interactions for partial_analysis in analyses]
-    
+   
+    out = f'{outpath}/datafiles/{sim}'
+    tmp = f'{outpath}/tmp{system}{first}{last}'
+
+    # ensure output directories are setup
     if not os.path.exists(f'{outpath}/datafiles/'):
     	os.mkdir(f'{outpath}/datafiles/')
-    	
+    if not os.path.exists(out):
+        os.mkdir(out)
+    if os.path.exists(tmp):
+        shutil.rmtree(tmp)
+    os.mkdir(tmp)
+
+
     print(f'Writing out {n_workers} data files.')
     for i, d in enumerate(data):
-    	with open(f'{outpath}/datafiles/raw_interactions{i}.json', 'w') as f:
+    	with open(f'{tmp}/raw_interactions{i}.json', 'w') as f:
     		json.dump(to_json(d), f)
     
     # combine all data into master checkpoint file, clean up files
@@ -464,15 +467,14 @@ if __name__ == '__main__':
     else:
         outname = f'{system}_start_end'
 
-    master = merge_data(n_workers)
-    with open(f'{outpath}/datafiles/raw_data_{outname}.json', 'w') as f:
+    master = merge_data(n_workers, tmp)
+    with open(f'{out}/raw_data_{outname}.json', 'w') as f:
     	json.dump(to_json(master), f)
     	
-    for i in range(n_workers):
-    	os.remove(f'{outpath}/datafiles/raw_interactions{i}.json')
+    shutil.rmtree(tmp)
     
     # smooth and then obtain coefficients for entire dataset
     print('Smoothing frame data, fitting curves and calculating coefficients')
     coeffs = get_coeffs(master)
-    with open(f'{outpath}/datafiles/{outname}_coeffs.json', 'w') as f:
+    with open(f'{out}/{outname}_coeffs.json', 'w') as f:
     	json.dump(to_json(coeffs), f)
