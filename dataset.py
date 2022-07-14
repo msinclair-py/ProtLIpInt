@@ -89,8 +89,9 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = lip_data * duplicates
         lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
         
-        one_file_dataset = SequenceDataset.pad_AA_lipid_dataset(all_resnames, lip_data, proper_inputs)
-        return one_file_dataset
+        inputs, targets = SequenceDataset.pad_AA_lipid_dataset(all_resnames, lip_data, proper_inputs)
+        one_file_dataset = cls(inputs, targets)
+        return one_file_dataset #a Dataset instance
         
     @staticmethod
     def data_preprocessing(split_txt: np.ndarray, seq: List[str]):
@@ -150,10 +151,10 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = np.concatenate((lip_data, pad_to_lip), axis=1) #make (duplicates, num_res+pad_to_lip, 8, 3) = (duplicates, padde_sequence, 8, 3)
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
         targets = lip_data
-        return cls(inputs, targets)
+        return inputs, targets
     
-    @classmethod
-    def from_directory(cls, directory: Union[pathlib.Path, str], hparams: argparse.ArgumentParser):
+    @staticmethod
+    def from_directory(directory: Union[pathlib.Path, str], hparams: argparse.ArgumentParser):
         potential_files = os.listdir(directory)
         filtered_files = list(filter(lambda inp: os.path.splitext(inp)[1] == ".json", potential_files))
         resnum_list = SequenceDataset.residue_length_check(filtered_files)
