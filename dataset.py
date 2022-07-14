@@ -188,6 +188,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         filtered_files = list(filter(lambda inp: os.path.splitext(inp)[1] == ".json", potential_files))
         resnum_list = SequenceDataset.residue_length_check(filtered_files)
         global max_residue #works well!
+        assert hparams.augment <= min(resnum_list), "augment slicing must be smaller than minimum residue length..."
         max_residue = max(resnum_list) if not hparams.augment else hparams.augment #if augmenting, use augmentation length instead of sequence length
         print(cf.on_yellow(f"Maximum length to pad sequence is {max_residue}..."))
 #         max_residue = 400
