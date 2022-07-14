@@ -129,7 +129,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         return seq_parser(seqs)
     
     @staticmethod
-    def lipid_mapper(data: "json file read")
+    def lipid_mapper(data: "json file read"):
         ##2. Lipid Index Mapping and Extracting Coefficients
         lips = SequenceDataset.__dict__["LIPID_HEAD_GROUPS"] #This specific order matters!
         lip2idx = {k:v for v, k in enumerate(lips)} #not needed since only coeffs are passed
@@ -143,7 +143,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         return lip_index(data)
 
     @staticmethod
-    def pad_AA_lipid_dataset(all_resnames: List[str], lip_data: np.ndarray, proper_inputs: List[str])
+    def pad_AA_lipid_dataset(all_resnames: List[str], lip_data: np.ndarray, proper_inputs: List[str]):
         ##3. all_resnames is already padded! to make dataset!
         pad_to_lip = np.zeros((len(all_resnames) - lip_data.shape[1], *lip_data.shape[-2:])) #(pad_to_lip, 8, 3)
         pad_to_lip = np.broadcast_to(pad_to_lip, (len(proper_inputs), *pad_to_lip.shape)) #(duplicates, pad_to_lip, 8, 3)
