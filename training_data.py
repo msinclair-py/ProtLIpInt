@@ -93,7 +93,6 @@ class LipidContacts(AnalysisBase):
         self.interactions = self.construct_interaction_array(tm)
         self.mapping = self.map_lipids()
 
-
     def _single_frame(self):
         '''
         What to do at each frame
@@ -150,9 +149,21 @@ class LipidContacts(AnalysisBase):
 
 
     def map_lipids(self):
-        lips = u.select_atoms('segid MEMB and name P').residues
-        lip_mapping = {name:name[-2:] if name != 'CHOL' else name for name in lips.resnames}
-        mapping = {resid:lip_mapping[resn] for resid, resn in zip(lips.ix, lips.resnames)}
+        mapping = dict()
+        normal = ['PS','PC','PA','PE','PG']
+        lips = u.select_atoms('segid MEMB').residues
+
+        for (ID, NAME) in zip(lips.ix, lips.resnames):
+            if any([True if hg in NAME else False for hg in normal]):
+                mapping.update({ID:NAME[-2:]})
+            elif 'CL' in NAME:
+                mapping.update({ID:'CL'})
+            elif 'SM' in NAME:
+                mapping.update({ID:'SM'})
+            elif NAME=='CHL1':
+                mapping.update({ID:'CHOL'})
+            else:
+                mapping.update({ID:'OTHER'})
 
         return mapping
 

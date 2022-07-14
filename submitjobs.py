@@ -7,12 +7,12 @@ qsub = ['/Scr/msincla01/github/ProtLIpInt/submit.sh']
 
 dirs = [
 #     '/Scr/arango/ClC.ec1', 
-#     '/Scr/arango/membrane_AA/CHL_AB/CHL50_GAMD/chl50.*',
-#     '/Scr/arango/membrane_AA/abeta/AB.AA91100*',
-#     '/Scr/arango/nsf-Project/rot.x0.y0/x0.y0.charmm-gui-*/namd-D2',
-#     '/Scr/sepehr/prestin/replica_1',
-     '/Scr/sepehr/prestin/replica_2'#,
-#     '/Scr/sepehr/spns/bacterial/6e9c/'
+     '/Scr/arango/membrane_AA/CHL_AB/CHL50_GAMD/chl50.*',
+     '/Scr/arango/membrane_AA/abeta/AB.AA91100*',
+     '/Scr/arango/nsf-Project/rot.x0.y0/x0.y0.charmm-gui-*/namd-D2',
+     '/Scr/sepehr/prestin/replica_1',
+     '/Scr/sepehr/prestin/replica_2',
+     '/Scr/sepehr/spns/bacterial/6e9c/[1-4]*'
 ]
 
 # EACH LIST CONTAINS:
@@ -27,13 +27,13 @@ dirs = [
 aux = [
 #    ['CLC.stride\\.[0-9][0-9].dcd', 'dcd', 
 #        numDCDs, '48', 'CLC.stride.', 'CLC_correct', 'namd'],
-#    ['1\\.[0-9][0-9].dcd', 'dcd', numDCDs, '48', '1.', '1', 'namd'],
-#    ['1\\.[0-9][0-9].dcd', 'dcd', numDCDs, '48', '1.', '1', 'namd'],
-#    ['D2.1\\.[0-9].dcd', 'dcd', numDCDs, 
-#        '48', 'D2.1.', 'hmmm-step5_assembly.xplor_ext', 'hmmm'],
-#    ['equ\\.[0-9]{1,2}.dcd', 'dcd', numDCDs, '48', 'equ_4/equ.', 'ini/ionized', 'namd'],
-    ['equ\\.[0-9]{1,2}.dcd', 'dcd', numDCDs, '48', 'equ_4/equ.', 'ini/ionized', 'namd']#,
-#    ['', 'dcd', numDCDs, '48', 'equ_3/equ_0.', 'ini/ionized', 'namd']
+    ['1\\.[0-9][0-9].dcd', 'dcd', numDCDs, '48', '1.', '1', 'namd'],
+    ['1\\.[0-9][0-9].dcd', 'dcd', numDCDs, '48', '1.', '1', 'namd'],
+    ['D2.1\\.[0-9].dcd', 'dcd', numDCDs, 
+        '48', 'D2.1.', 'hmmm-step5_assembly.xplor_ext', 'hmmm'],
+    ['equ\\.[0-9]{1,2}.dcd', 'dcd', numDCDs, '48', 'equ_4/equ.', 'ini/ionized', 'namd'],
+    ['equ\\.[0-9]{1,2}.dcd', 'dcd', numDCDs, '48', 'equ_4/equ.', 'ini/ionized', 'namd'],
+    ['equ_[0-9].dcd', 'dcd', numDCDs, '48', 'equ_3/equ_', 'ini/ionized', 'namd']
 ]
 
 def natural_sort(l: list) -> list:
@@ -43,7 +43,10 @@ def natural_sort(l: list) -> list:
 
 
 def glob_re(pattern: str, strings: list) -> list:
-    fpath = os.path.commonpath(strings)
+    if isinstance(strings[0], str):
+        fpath = os.path.
+    else:
+        fpath = os.path.commonpath(strings)
     temp = list(map(lambda x: os.path.basename(x), strings))
     culled = filter(re.compile(pattern).match, temp)
     return [os.path.join(fpath, x) for x in culled]
@@ -89,7 +92,7 @@ def append_multi_directory(dirs: list, pat: str, ext: str,
         cpath, traj, strc = get_paths(f'{directory}/{traj}', 
                                         f'{directory}/{psf}')
 
-        info = [jnames[i],nproc,cpath,traj]
+        info = [jnames[i],cpath,traj]
 
         values = [info+[f'{a*numT+1}',
                         f'{a*numT+numT}',
@@ -118,11 +121,13 @@ for i, _dir in enumerate(dirs):
 
 os.chdir(destination)
 
-for _dir in submissions.keys():
-    if isinstance(submissions[_dir][0], list):
-        for submission in submissions[_dir]:
-            submit = qsub + submission
-            print(f'Submitting the follow job:\n{submit}')
-            subprocess.run(submit)#, stdout=PIPE, capture_output=True)
-    else:
-        print('ERR OAR!')
+with open('submitter.txt','w') as outfile:
+    for _dir in submissions.keys():
+        if isinstance(submissions[_dir][0], list):
+            for submission in submissions[_dir]:
+                submit = qsub + submission
+                subprocess.run(submit)
+        else:
+            print('ERR OAR!')
+
+    outfile.close()
