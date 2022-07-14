@@ -62,22 +62,44 @@ class SequenceDataset(torch.utils.data.Dataset):
         #('X', 25), ('U', 26), ('B', 27), ('Z', 28), ('O', 29)]
         return inputs 
     
-    @classmethod
-    def from_json(cls, filename: str, hparams: argparse.ArgumentParser):
+    @staticmethod
+    def from_json(filename: str, hparams: argparse.ArgumentParser):
         """DONE: WIP: Move functions from BertNERTokenizer.py
-        This is per file of trajectory...
+        This is per file of trajectory to be called inside
+        DEF from_directory...!!
         Call 0. datapreprocessing
-             1. 
+             0.1 AA_letter_mapper
+             1. lipid_mapper
+             2. pad_AA_lipid_dataset
         """
 #         global max_residue
         max_residue = hparams.max_residue
-
+        augment = hparams.augment #integer
+        
         assert os.path.split(filename)[-1].split(".")[-1] == "json", "not a json file!" #get extension
         with open(filename, "r") as f:
             data = json.load(f)
         assert isinstance(data, dict), "wrong data format!"
         
-        seq = list(data.keys()) #e.g. TYR-483-PROA; len(seq) = num_res
+        if augment:
+            seq_original = list(data.keys()) #e.g. TYR-483-PROA; len(seq) = num_res
+            #Below: starting key selection index
+            dataset_list = []
+            for start_idx in range(len(seq_original) - augment + 1):
+                end_idx = start_idx + augment
+                seq_augment = seq_original[start_idx:end_idx]
+                data_augment = {k:data[k] for k in seq_augment} #select key-value from original data
+                dataset_augment = SequenceDataset.parse_json_file(data_augment) #(1,augment_length) for one dataset
+                dataset_list.append(dataset_augment)
+            dataset = torch.utils.data.ConcatDataset(dataset_list) #(N,augment_length) for concatenated augmented dataset
+        else:
+            dataset = SequenceDataset.parse_json_file(data) #(1,padded_seq) for one dataset
+            
+        return dataset
+                
+    @classmethod
+    def parse_json_file(cls, data: dict):
+        seq = list(data.keys()) #e.g. TYR-483-PROA; len(seq) = num_res OR augment_length 
         split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
         duplicates = 1 #Fake duplicates for batches (i.e. num files)
         print(cf.red(f"Max num residues: {max_residue} Original length: {len(seq)}..."))
@@ -87,22 +109,22 @@ class SequenceDataset(torch.utils.data.Dataset):
         
         lip_data = SequenceDataset.lipid_mapper(data)  #[list(num_res, 8, 3)]
         lip_data = lip_data * duplicates
-        lip_data = np.array(lip_data) #duplicates, num_res, 8, 3    
+        lip_data = np.array(lip_data) #duplicates, (num_res OR augment), 8, 3    
         
         inputs, targets = SequenceDataset.pad_AA_lipid_dataset(all_resnames, lip_data, proper_inputs)
         one_file_dataset = cls(inputs, targets)
         return one_file_dataset #a Dataset instance
-        
+    
     @staticmethod
     def data_preprocessing(split_txt: np.ndarray, seq: List[str]):
         ##0. DATA PREPROCESSING for Multi-segment Files
-        ##max_residue is a global keyword 
+        ##WARNING: max_residue is a global keyword 
         split_txt = np.tile(split_txt, (1,1)) #Multiseg-test
 #         split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
 #         split_txt[2*len(seq):,2] = "PROC" #Multiseg-test
         
         all_resnames, all_segnames, modified_slice = split_txt[:,0].tolist(), split_txt[:,2], []
-        all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
+        all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space];; WIP: is this necessary for AA_letter_mapper???
         all_resnames = SequenceDataset.AA_letter_mapper(all_resnames) #[str_with_space_3letter] -> [str_with_space_1letter]
         all_resnames = all_resnames[0].split(" ") #List[str]
         all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP; type An AA List (e.g. ["A","G"...]
@@ -121,13 +143,13 @@ class SequenceDataset(torch.utils.data.Dataset):
         return all_resnames, proper_inputs #take multi-segments into account
     
     @staticmethod
-    def AA_letter_mapper(seqs: List[str]):     
+    def AA_letter_mapper(all_resnames: List[str]):     
         ##1. AA Letter Mapping
         AA = SequenceDataset.__dict__["THREE_LETTER_AAS"]
         aa = SequenceDataset.__dict__["ONE_LETTER_AAS"]
         three2one = {THREE:ONE for THREE, ONE in list(zip(AA,aa))}
         seq_parser = lambda seqs: list(map(lambda seq: ' '.join(list(map(lambda aa: three2one.get(aa, None), seq.split(" ") ))), seqs ))    #THREE LETTER -> ONE LETTER
-        return seq_parser(seqs)
+        return seq_parser(all_resnames)
     
     @staticmethod
     def lipid_mapper(data: "json file read"):
@@ -137,7 +159,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         idx2lip = {v:k for k, v in lip2idx.items()} #not needed since only coeffs are passed
         def lip_index(data: dict):
             seq = list(data.keys()) #e.g. TYR-483-PROA
-            seq_nonzero = [[[v if isinstance(v, list) else [v]*3 for (l, v) in data[s].items()] for s in seq]] #to make duplicates x num_res x 8 x 3
+            seq_nonzero = [[[v if isinstance(v, list) else [v]*3 for (l, v) in data[s].items()] for s in seq]] #to make duplicates x (num_res OR augment) x 8 x 3
             return seq_nonzero
 #         print(len(lip_data[0])) #For 1 data, [num_AA lists; each AA list has 8 lipid type tuples];;; #172
 #         print(SequenceDataset.__dict__)
@@ -148,7 +170,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         ##3. all_resnames is already padded! to make dataset!
         pad_to_lip = np.zeros((len(all_resnames) - lip_data.shape[1], *lip_data.shape[-2:])) #(pad_to_lip, 8, 3)
         pad_to_lip = np.broadcast_to(pad_to_lip, (len(proper_inputs), *pad_to_lip.shape)) #(duplicates, pad_to_lip, 8, 3)
-        lip_data = np.concatenate((lip_data, pad_to_lip), axis=1) #make (duplicates, num_res+pad_to_lip, 8, 3) = (duplicates, padde_sequence, 8, 3)
+        lip_data = np.concatenate((lip_data, pad_to_lip), axis=1) #make (duplicates, (num_res OR augment)+pad_to_lip, 8, 3) = (duplicates, padde_sequence, 8, 3)
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
         targets = lip_data
         return inputs, targets
@@ -159,11 +181,11 @@ class SequenceDataset(torch.utils.data.Dataset):
         filtered_files = list(filter(lambda inp: os.path.splitext(inp)[1] == ".json", potential_files))
         resnum_list = SequenceDataset.residue_length_check(filtered_files)
         global max_residue #works well!
-        max_residue = max(resnum_list)
+        max_residue = max(resnum_list) if not hparams.augment else hparams.augment #if augmenting, use augmentation length instead of sequence length
         print(cf.on_yellow(f"Maximum length to pad sequence is {max_residue}..."))
 #         max_residue = 400
         hparams.max_residue: int = max_residue #set a new attribute for Argparser; maximum residue num across json files!
-        dataset_list = [SequenceDataset.from_json(one_file, hparams) for _, one_file in enumerate(filtered_files)]
+        dataset_list = [SequenceDataset.from_json(one_file, hparams) for _, one_file in enumerate(filtered_files)] #to concat dataset
         concat_dataset = torch.utils.data.ConcatDataset(dataset_list) #DONE with PADDING: WIP; must deal with different resnum datasets!
         return concat_dataset
     
