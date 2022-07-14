@@ -197,8 +197,8 @@ class SequenceDataset(torch.utils.data.Dataset):
 #         return cls(data)    
     
 if __name__ == "__main__":
-#     from train import get_args
-#     hparam = get_args()
+    from train import get_args
+    hparams = get_args()
 #     dataset = load_dataset("yarongef/human_proteome_triplets", cache_dir=hparam.load_data_directory)
 
 #     # collections.Counter(dataset["test"]["label"])
@@ -220,4 +220,8 @@ if __name__ == "__main__":
 #             input_reformats = {'input_ids': input_ids, 'token_type_ids': token_type_ids, 'attention_mask': attention_mask}
 #             target_reformats = {"labels": self.targets[idx]}
 #             return input_reformats, target_reformats
-    pass
+    ds2 = SequenceDataset.from_directory("/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", hparams) #concat dataset instance
+    print(len(ds2))
+    dl = torch.utils.data.DataLoader(ds2, batch_size=15)
+    print(len(dl))
+    print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape) #RuntimeError: stack expects each tensor to be equal size, but got [345] at entry 0 and [347] at entry 10
