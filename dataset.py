@@ -45,7 +45,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         token_type_ids = self.inputs["token_type_ids"][idx] #B, L
         attention_mask = self.inputs["attention_mask"][idx] #B, L
         input_reformats = {'input_ids': input_ids, 'token_type_ids': token_type_ids, 'attention_mask': attention_mask}
-        target_reformats = {"labels": torch.from_numpy(self.targets["labels"][idx]).type(torch.long),
+        target_reformats = {"labels": torch.from_numpy(self.targets["labels"][idx]).type(torch.float32),
                             "target_invalid_lipids": torch.from_numpy(self.targets["target_invalid_lipids"].reshape(-1,)).type(torch.bool)}
         
         return input_reformats, target_reformats
