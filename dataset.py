@@ -107,11 +107,10 @@ class SequenceDataset(torch.utils.data.Dataset):
         all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
         all_resnames = seq_parser(all_resnames) #[str_with_space_3letter] -> [str_with_space_1letter]
         all_resnames = all_resnames[0].split(" ") #List[str]
-#         print(len(all_resnames))
-        all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP
-#         print((max_residue - len(seq)))
+        all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP; type An AA List (e.g. ["A","G"...]
         print(all_resnames, seq)
-        print(cf.red(f"Max num residues: {max_residue}, No duplicates: {len(all_resnames) == len(seq)}"))
+        print(cf.red(f"Max num residues: {max_residue}"))
+        assert len(np.where(all_resnames!="[PAD]")[0]) == len(seq), cf.red("There is something wrong with sequence parsing...")
         
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
         start_idx = 0
