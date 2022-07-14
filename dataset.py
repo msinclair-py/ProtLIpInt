@@ -185,5 +185,5 @@ if __name__ == "__main__":
     ds2 = SequenceDataset.from_directory("/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", hparams) #concat dataset instance
     dl = torch.utils.data.DataLoader(ds2, batch_size=15)
     one_ds = iter(dl).next()
-    print(one_ds[0]["input_ids"])
+    print(one_ds[0]["input_ids"].shape)
 #     print(one_ds[0]["input_ids"].shape, one_ds[1].shape) #inputs, targets
