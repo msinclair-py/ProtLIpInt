@@ -134,7 +134,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         assert lip_data.ndim == 4, "dimension of lipid array data is wrong..."
         masked_lip_data = ~(np.apply_along_axis(func1d=lambda inp: np.sum(inp**2), axis=-1, arr=lip_data) == 0.) # --> duplicates, (num_res OR augment), 8
         masked_lipids = np.any(masked_lip_data, axis=1) ## --> duplicates, 8
-        print(masked_lipids)
+#         print(masked_lipids)
         return masked_lipids #non-existing lipids will be False; else True
     
     @staticmethod
