@@ -110,7 +110,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP; type An AA List (e.g. ["A","G"...]
 #         print(all_resnames, np.where(all_resnames!="[PAD]"), len(seq))
         print(cf.red(f"Max num residues: {max_residue}"))
-        assert len(np.where(np.array(all_resnames)!="[PAD]")) == len(seq), cf.red("There is something wrong with sequence parsing...") #for np.where, must use np.ndarray !
+        assert len(np.where(np.array(all_resnames)!="[PAD]")[0]) == len(seq), cf.red("There is something wrong with sequence parsing...") #for np.where, must use np.ndarray !
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
         
         start_idx = 0
