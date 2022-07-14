@@ -233,4 +233,4 @@ if __name__ == "__main__":
     dl = torch.utils.data.DataLoader(ds2, batch_size=15)
     one_ds = iter(dl).next()
     print(len(ds2))
-    print(one_ds[0]["input_ids"].shape, one_ds[1]["labels"].shape, one_ds[1]["target_invalid_lipids"].shape) #inputs, targets
+    print(one_ds[0]["input_ids"], one_ds[1]["labels"], one_ds[1]["target_invalid_lipids"]) #inputs, targets
