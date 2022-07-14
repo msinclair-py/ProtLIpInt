@@ -38,7 +38,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         super().__init__()
 
     def __len__(self):
-        return len(self.targets) #train length...
+        return len(self.targets["labels"]) #train length...
 
     def __getitem__(self, idx):
         input_ids = self.inputs["input_ids"][idx] #B, L
@@ -82,6 +82,7 @@ class SequenceDataset(torch.utils.data.Dataset):
             data = json.load(f)
         assert isinstance(data, dict), "wrong data format!"        
         masked_lipids = SequenceDataset.check_unique_lipid(data) #Get valid lipid types from trajectory
+        print(masked_lipids)
         
         if augment:
             seq_original = list(data.keys()) #e.g. TYR-483-PROA; len(seq) = num_res
