@@ -195,6 +195,9 @@ class SequenceDataset(torch.utils.data.Dataset):
         hparams.max_residue: int = max_residue #set a new attribute for Argparser; maximum residue num across json files!
         dataset_list = [SequenceDataset.from_json(one_file, hparams) for _, one_file in enumerate(filtered_files)] #to concat dataset
         concat_dataset = torch.utils.data.ConcatDataset(dataset_list) #DONE with PADDING: WIP; must deal with different resnum datasets!
+        
+        if hparams.augment:
+            print(cf.on_blue(f"By augmentation, dataset size has been enriched by {100*(len(concat_dataset)-filtered_files)/filtered_files} percent..."))
         return concat_dataset
     
     @staticmethod
