@@ -53,7 +53,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         inputs = tokenizer.batch_encode_plus(proper_inputs,
                                       add_special_tokens=True,
                                       padding=True, truncation=True, return_tensors="pt",
-                                      max_length=hparams.max_length, return_attention_masks=True) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
+                                      max_length=hparams.max_length) #SUPPORTS two PAIRs for now... !Tokenize inputs as a dict type of Tensors
 #         print(tokenizer.vocab)
         #('[PAD]', 0), ('[UNK]', 1), ('[CLS]', 2), ('[SEP]', 3), ('[MASK]', 4), ('L', 5), ('A', 6), 
         #('G', 7), ('V', 8), ('E', 9), ('S', 10), ('I', 11), ('K', 12), ('R', 13), ('D', 14), ('T', 15), 
@@ -144,8 +144,9 @@ class SequenceDataset(torch.utils.data.Dataset):
         potential_files = os.listdir(directory)
         filtered_files = list(filter(lambda inp: os.path.splitext(inp)[1] == ".json", potential_files))
         resnum_list = SequenceDataset.residue_length_check(filtered_files)
-#         max_residue = max(resnum_list)
-        max_residue = 400
+        max_residue = max(resnum_list)
+        print(f"Maximum length to pad sequence is {max_residue}...")
+#         max_residue = 400
         hparams.max_residue: int = max_residue #set a new attribute for Argparser; maximum residue num across json files!
 #         print(hparams.max_residue)
 #         hparams.resnum_list_idx: List[int] = np.arange(len(resnum_list)) #set a new attribute for Argparser
