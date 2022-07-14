@@ -99,6 +99,13 @@ class SequenceDataset(torch.utils.data.Dataset):
                 
     @classmethod
     def parse_json_file(cls, data: dict):
+        """
+         Called inside from_json for normal/augmentation
+         Call 0. datapreprocessing
+         0.1 AA_letter_mapper
+         1. lipid_mapper
+         2. pad_AA_lipid_dataset
+        """
         seq = list(data.keys()) #e.g. TYR-483-PROA; len(seq) = num_res OR augment_length 
         split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
         duplicates = 1 #Fake duplicates for batches (i.e. num files)
