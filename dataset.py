@@ -108,11 +108,11 @@ class SequenceDataset(torch.utils.data.Dataset):
         all_resnames = seq_parser(all_resnames) #[str_with_space_3letter] -> [str_with_space_1letter]
         all_resnames = all_resnames[0].split(" ") #List[str]
         all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP; type An AA List (e.g. ["A","G"...]
-        print(all_resnames, np.where(all_resnames!="[PAD]"), len(seq))
+#         print(all_resnames, np.where(all_resnames!="[PAD]"), len(seq))
         print(cf.red(f"Max num residues: {max_residue}"))
-        assert len(np.where(all_resnames!="[PAD]")) == len(seq), cf.red("There is something wrong with sequence parsing...")
-        
+        assert len(np.where(np.array(all_resnames)!="[PAD]")) == len(seq), cf.red("There is something wrong with sequence parsing...") #for np.where, must use np.ndarray !
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
+        
         start_idx = 0
         for idx, seg in enumerate(np.unique(all_segnames)):
             end_idx_p1 = np.sum(all_segnames == seg) + start_idx if idx != (np.unique(all_segnames).shape[0]-1) else None
