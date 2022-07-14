@@ -120,7 +120,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = lip_data * duplicates
         lip_data = np.array(lip_data) #duplicates, (num_res OR augment), 8, 3  
         
-        print(return_lip_data)
+        print("Test", return_lip_data)
         if return_lip_data:
             return lip_data #a Dataset instance OR lip_data mask!
         else:
