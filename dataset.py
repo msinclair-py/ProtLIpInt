@@ -82,7 +82,6 @@ class SequenceDataset(torch.utils.data.Dataset):
             data = json.load(f)
         assert isinstance(data, dict), "wrong data format!"        
         masked_lipids = SequenceDataset.check_unique_lipid(data) #Get valid lipid types from trajectory
-        print(masked_lipids)
         
         if augment:
             seq_original = list(data.keys()) #e.g. TYR-483-PROA; len(seq) = num_res
@@ -134,6 +133,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         assert lip_data.ndim == 4, "dimension of lipid array data is wrong..."
         masked_lip_data = ~(np.apply_along_axis(func1d=lambda inp: np.sum(inp**2), axis=-1, arr=lip_data) == 0.) # --> duplicates, (num_res OR augment), 8
         masked_lipids = np.any(masked_lip_data, axis=1) ## --> duplicates, 8
+        print(masked_lipids)
         return masked_lipids #non-existing lipids will be False; else True
     
     @staticmethod
