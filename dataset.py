@@ -183,7 +183,6 @@ if __name__ == "__main__":
     hparams = get_args()
 
     ds2 = SequenceDataset.from_directory("/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", hparams) #concat dataset instance
-#     print(len(ds2))
     dl = torch.utils.data.DataLoader(ds2, batch_size=15)
-#     print(len(dl))
-#     print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape) #RuntimeError: stack expects each tensor to be equal size, but got [345] at entry 0 and [347] at entry 10
+    one_ds = iter(dl).next()
+    print(one_ds[0], one_ds[1]) #inputs, targets
