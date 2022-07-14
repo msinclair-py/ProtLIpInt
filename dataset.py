@@ -20,6 +20,7 @@ import collections
 from typing import *
 import json
 import pathlib
+from curtsies import fmtfuncs as cf
 
 #https://github.com/HelloJocelynLu/t5chem/blob/main/t5chem/archived/MultiTask.py for more info
 # collections.Counter(dataset["test"]["label"])
@@ -77,7 +78,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         
         seq = list(data.keys()) #e.g. TYR-483-PROA; len(seq) = num_res
         split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
-        duplicates = 10 #Fake duplicates for batches (i.e. num files)
+        duplicates = 1 #Fake duplicates for batches (i.e. num files)
 
         ##1. AA Letter Mapping
         AA = SequenceDataset.__dict__["THREE_LETTER_AAS"]
@@ -98,9 +99,9 @@ class SequenceDataset(torch.utils.data.Dataset):
         segs = SequenceDataset.__dict__["SEGMENT_NAMES"] #use [SEP] for different segment!
 
         ##3. DATA PREPROCESSING for Multi-segment Files
-        split_txt = np.tile(split_txt, (2,1)) #Multiseg-test
-        split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
-        split_txt[2*len(seq):,2] = "PROC" #Multiseg-test
+        split_txt = np.tile(split_txt, (1,1)) #Multiseg-test
+#         split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
+#         split_txt[2*len(seq):,2] = "PROC" #Multiseg-test
         
         all_resnames, all_segnames, modified_slice = split_txt[:,0].tolist(), split_txt[:,2], []
         all_resnames = [' '.join(all_resnames)] #List[str] -> [str_with_space]
@@ -109,7 +110,7 @@ class SequenceDataset(torch.utils.data.Dataset):
 #         print(len(all_resnames))
         all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP
 #         print((max_residue - len(seq)))
-        print(max_residue, all_resnames, len(all_resnames), len(seq))
+        print(cf.red(max_residue, len(all_resnames) == len(seq)))
         
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
         start_idx = 0
@@ -135,7 +136,7 @@ class SequenceDataset(torch.utils.data.Dataset):
 #         print(proper_inputs)
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
         targets = lip_data
-        print(inputs, targets.shape)
+#         print(inputs, targets.shape)
         
         return cls(inputs, targets)
     
@@ -145,7 +146,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         filtered_files = list(filter(lambda inp: os.path.splitext(inp)[1] == ".json", potential_files))
         resnum_list = SequenceDataset.residue_length_check(filtered_files)
         max_residue = max(resnum_list)
-        print(f"Maximum length to pad sequence is {max_residue}...")
+        print(cf.on_yellow(f"Maximum length to pad sequence is {max_residue}..."))
 #         max_residue = 400
         hparams.max_residue: int = max_residue #set a new attribute for Argparser; maximum residue num across json files!
 #         print(hparams.max_residue)
