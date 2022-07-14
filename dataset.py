@@ -110,6 +110,7 @@ class SequenceDataset(torch.utils.data.Dataset):
 #         print(len(all_resnames))
         all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP
 #         print((max_residue - len(seq)))
+        print(all_resnames, seq)
         print(cf.red(f"Max num residues: {max_residue}, No duplicates: {len(all_resnames) == len(seq)}"))
         
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
@@ -223,7 +224,7 @@ if __name__ == "__main__":
 #             target_reformats = {"labels": self.targets[idx]}
 #             return input_reformats, target_reformats
     ds2 = SequenceDataset.from_directory("/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", hparams) #concat dataset instance
-    print(len(ds2))
+#     print(len(ds2))
     dl = torch.utils.data.DataLoader(ds2, batch_size=15)
-    print(len(dl))
-    print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape) #RuntimeError: stack expects each tensor to be equal size, but got [345] at entry 0 and [347] at entry 10
+#     print(len(dl))
+#     print(iter(dl).next()[0]['input_ids'].shape, iter(dl).next()[1]['labels'].shape) #RuntimeError: stack expects each tensor to be equal size, but got [345] at entry 0 and [347] at entry 10
