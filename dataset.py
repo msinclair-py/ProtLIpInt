@@ -91,16 +91,16 @@ class SequenceDataset(torch.utils.data.Dataset):
                 end_idx = start_idx + augment
                 seq_augment = seq_original[start_idx:end_idx]
                 data_augment = {k:data[k] for k in seq_augment} #select key-value from original data
-                dataset_augment = SequenceDataset.parse_json_file(data_augment, masked_lipids) #(1,augment_length) for one dataset
+                dataset_augment = SequenceDataset.parse_json_file(data_augment, masked_lipids=masked_lipids) #(1,augment_length) for one dataset
                 dataset_list.append(dataset_augment)
             dataset = torch.utils.data.ConcatDataset(dataset_list) #(N,augment_length) for concatenated augmented dataset
         else:
-            dataset = SequenceDataset.parse_json_file(data, masked_lipids) #(1,padded_seq) for one dataset
+            dataset = SequenceDataset.parse_json_file(data, masked_lipids=masked_lipids) #(1,padded_seq) for one dataset
             
         return dataset
                 
     @classmethod
-    def parse_json_file(cls, data: dict, return_lip_data=False, masked_lipids:np.ndarray=None):
+    def parse_json_file(cls, data: dict, return_lip_data=False, masked_lipids: np.ndarray=None):
         """
          Called inside from_json for normal/augmentation
          Call 0. datapreprocessing
@@ -120,7 +120,6 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data = lip_data * duplicates
         lip_data = np.array(lip_data) #duplicates, (num_res OR augment), 8, 3  
         
-        print("Test", return_lip_data)
         if return_lip_data:
             return lip_data #a Dataset instance OR lip_data mask!
         else:
