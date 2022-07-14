@@ -71,7 +71,6 @@ class SequenceDataset(torch.utils.data.Dataset):
         """
 #         global max_residue
         max_residue = hparams.max_residue
-        print(cf.red(f"Max num residues: {max_residue}"))
 
         assert os.path.split(filename)[-1].split(".")[-1] == "json", "not a json file!" #get extension
         with open(filename, "r") as f:
@@ -81,7 +80,8 @@ class SequenceDataset(torch.utils.data.Dataset):
         seq = list(data.keys()) #e.g. TYR-483-PROA; len(seq) = num_res
         split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
         duplicates = 1 #Fake duplicates for batches (i.e. num files)
-        
+        print(cf.red(f"Max num residues: {max_residue} Original length: {len(seq)}..."))
+
         all_resnames, proper_inputs = SequenceDataset.data_preprocessing(split_txt, seq)
         proper_inputs = proper_inputs * duplicates #List[duplicate lists of sent standalone AND/OR pairs]
         
@@ -96,7 +96,7 @@ class SequenceDataset(torch.utils.data.Dataset):
     @staticmethod
     def data_preprocessing(split_txt: np.ndarray, seq: List[str]):
         ##0. DATA PREPROCESSING for Multi-segment Files
-        ##max_residue is a global keyword OR Pass it explicitly
+        ##max_residue is a global keyword 
         split_txt = np.tile(split_txt, (1,1)) #Multiseg-test
 #         split_txt[len(seq):len(seq)*2,2] = "PROB" #Multiseg-test
 #         split_txt[2*len(seq):,2] = "PROC" #Multiseg-test
@@ -158,7 +158,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         potential_files = os.listdir(directory)
         filtered_files = list(filter(lambda inp: os.path.splitext(inp)[1] == ".json", potential_files))
         resnum_list = SequenceDataset.residue_length_check(filtered_files)
-        global max_residue
+        global max_residue #works well!
         max_residue = max(resnum_list)
         print(cf.on_yellow(f"Maximum length to pad sequence is {max_residue}..."))
 #         max_residue = 400
