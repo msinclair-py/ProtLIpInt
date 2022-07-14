@@ -110,7 +110,7 @@ class SequenceDataset(torch.utils.data.Dataset):
 #         print(len(all_resnames))
         all_resnames = all_resnames + (max_residue - len(all_resnames)) * ["[PAD]"] #WIP
 #         print((max_residue - len(seq)))
-        print(cf.red(max_residue, len(all_resnames) == len(seq)))
+        print(cf.red(f"Max num residues: {max_residue}, No duplicates: {len(all_resnames) == len(seq)}"))
         
         assert np.isin(all_segnames, segs).all(), "all segnames must match..."
         start_idx = 0
