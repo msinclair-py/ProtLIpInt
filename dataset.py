@@ -21,6 +21,7 @@ from typing import *
 import json
 import pathlib
 from curtsies import fmtfuncs as cf
+import pickle
 
 #https://github.com/HelloJocelynLu/t5chem/blob/main/t5chem/archived/MultiTask.py for more info
 # collections.Counter(dataset["test"]["label"])
@@ -216,8 +217,10 @@ class SequenceDataset(torch.utils.data.Dataset):
             print(cf.on_blue(f"By augmentation, dataset size has been enriched by {100*(len(concat_dataset)-len(filtered_files))/len(filtered_files)} percent..."))
         
         if hparams.save_to_file:
-            save_to_file = os.path.splitext(hparams.save_to_file)[0] + ".pt"
-            torch.save(concat_dataset, f"{save_to_file}")
+            save_to_file = os.path.splitext(hparams.save_to_file)[0] + ".pickle"
+#             torch.save(concat_dataset, f"{save_to_file}")
+            with open(save_to_file, "wb") as f:
+                pickle.dump(concat_dataset, save_to_file)
         return concat_dataset
     
     @staticmethod
