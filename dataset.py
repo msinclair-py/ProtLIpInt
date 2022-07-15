@@ -126,7 +126,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         if return_lip_data:
             return lip_data #a Dataset instance OR lip_data mask!
         else:
-            inputs, targets = SequenceDataset.pad_AA_lipid_dataset(all_resnames, lip_data, proper_inputs, masked_lipids)
+            inputs, targets = SequenceDataset.pad_AA_lipid_dataset(all_resnames, lip_data, proper_inputs, masked_lipids, hparams)
             one_file_dataset = cls(inputs, targets)
             return one_file_dataset  #a Dataset instance OR lip_data mask!
     
@@ -189,7 +189,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         return lip_index(data)
 
     @staticmethod
-    def pad_AA_lipid_dataset(all_resnames: List[str], lip_data: np.ndarray, proper_inputs: List[str], masked_lipids: np.ndarray):
+    def pad_AA_lipid_dataset(all_resnames: List[str], lip_data: np.ndarray, proper_inputs: List[str], masked_lipids: np.ndarray, hparams:argparse.ArgumentParser):
         ##3. all_resnames is already padded! to make dataset!
         pad_to_lip = np.zeros((len(all_resnames) - lip_data.shape[1], *lip_data.shape[-2:])) #(pad_to_lip, 8, 3)
         pad_to_lip = np.broadcast_to(pad_to_lip, (len(proper_inputs), *pad_to_lip.shape)) #(duplicates, pad_to_lip, 8, 3)
