@@ -226,16 +226,21 @@ class SequenceDataset(torch.utils.data.Dataset):
     @staticmethod
     def load_saved_dataset(filename: str):
         #How to solve pickle's can't find Attribute error?
+        #It happens because SequenceDataset Module is not properly loaded!
         #https://stackoverflow.com/questions/27732354/unable-to-load-files-using-pickle-and-multiple-modules
+        filename = os.path.splitext(filename)[0] + ".pickle"
+        
+        ####Solution 1.
 #         class CustomUnpickler(pickle.Unpickler):
 #             def find_class(self, module, name):
 #                 if name == 'SequenceDataset':
 #                     from dataset import SequenceDataset
 #                     return SequenceDataset
 #                 return super().find_class(module, name)
-        from dataset import SequenceDataset
-        filename = os.path.splitext(filename)[0] + ".pickle"
 #         dataset = CustomUnpickler(open(f"{filename}","rb")).load()
+
+        ####Solution 2.
+        from dataset import SequenceDataset
         f = open(f"{filename}","rb")
         dataset = pickle.load(f)
         return dataset
