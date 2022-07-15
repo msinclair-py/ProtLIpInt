@@ -113,7 +113,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         seq = list(data.keys()) #e.g. TYR-483-PROA; len(seq) = num_res OR augment_length 
         split_txt = np.array(list(map(lambda inp: inp.split("-"), seq))) #List[tuple of RESNAME_RESID_SEGID] -> np.array
         duplicates = 1 #Fake duplicates for batches (i.e. num files)
-        print(cf.red(f"Max num residues: {max_residue} Original length: {len(seq)}..."))
+        if not return_lip_data: print(cf.red(f"Max num residues: {max_residue} Original length: {len(seq)}..."))
 
         all_resnames, proper_inputs = SequenceDataset.data_preprocessing(split_txt, seq)
         proper_inputs = proper_inputs * duplicates #List[duplicate lists of sent standalone AND/OR pairs]
