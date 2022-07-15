@@ -199,7 +199,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         return inputs, targets
     
     @staticmethod
-    def from_directory(directory: Union[pathlib.Path, str], hparams: argparse.ArgumentParser):
+    def from_directory(directory: Union[pathlib.Path, str], hparams: argparse.ArgumentParser, save_to_file=None):
         potential_files = os.listdir(directory)
         filtered_files = list(filter(lambda inp: os.path.splitext(inp)[1] == ".json", potential_files))
         resnum_list = SequenceDataset.residue_length_check(filtered_files)
@@ -214,6 +214,9 @@ class SequenceDataset(torch.utils.data.Dataset):
         
         if hparams.augment:
             print(cf.on_blue(f"By augmentation, dataset size has been enriched by {100*(len(concat_dataset)-len(filtered_files))/len(filtered_files)} percent..."))
+        if save_to_file:
+            save_to_file = os.path.splitext(save_to_file)[0] + ".pt"
+            torch.save(concat_dataset, f"{save_to_file}")
         return concat_dataset
     
     @staticmethod
