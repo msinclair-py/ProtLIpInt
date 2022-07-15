@@ -235,7 +235,9 @@ class SequenceDataset(torch.utils.data.Dataset):
 #                 return super().find_class(module, name)
         from dataset import SequenceDataset
         filename = os.path.splitext(filename)[0] + ".pickle"
-        dataset = CustomUnpickler(open(f"{filename}","rb")).load()
+#         dataset = CustomUnpickler(open(f"{filename}","rb")).load()
+        f = open(f"{filename}","rb")
+        dataset = pickle.load(f)
         return dataset
     
     @staticmethod
