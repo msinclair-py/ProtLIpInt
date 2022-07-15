@@ -19,8 +19,7 @@ import dataset as dl
 import argparse
 from typing import *
 from torchcrf import CRF
-import BertNER
-import BertNERTokenizer
+from dataset import SequenceDataset
 
 #https://github.com/HelloJocelynLu/t5chem/blob/main/t5chem/archived/MultiTask.py for more info
 
@@ -47,9 +46,8 @@ class ProtBertClassifier(pl.LightningModule):
         self.batch_size = self.hparam.batch_size
         self.model_name = self.hparam.model_name #"Rostlab/prot_bert_bfd"  
         self.ner = self.hparam.ner #bool
-        self.dataset = load_dataset(hparam.dataset, cache_dir=hparam.load_data_directory) #switch to a dataset!
-        self.num_labels = np.unique(self.dataset["train"]["label"]).__len__() #2 for Filippo; many for Matt 
-        # self.metric_acc = torchmetrics.Accuracy()
+        self.dataset = SequenceDataset.load_saved_dataset("data_compiled.pickle")
+        self.num_labels = 9 #WIP: placeholder
         self.z_dim = self.hparam.z_dim #Add this!
         if self.hparam.loss == "contrastive": self.register_parameter("W", torch.nn.Parameter(torch.rand(self.z_dim, self.z_dim))) #CURL purpose
         
@@ -90,19 +88,17 @@ class ProtBertClassifier(pl.LightningModule):
         WIP!"""
         #model = locals()["model"] if locals()["model"] and isinstance(locals()["model"], BertModel) else BertModel.from_pretrained(self.model_name, cache_dir=self.hparam.load_model_directory)
         model = BertModel.from_pretrained(self.model_name, cache_dir=self.hparam.load_model_directory)
-        model = BertNER.BertNER(model, self.ner_config)
         
         self.model = model
         self.encoder_features = self.z_dim
 
         # Tokenizer
-        self.tokenizer = BertNERTokenizer.BertNERTokenizer(self.ner_config)
+        self.tokenizer = BertTokenizer.from_pretrained(self.model_name, do_lower_case=False, return_tensors="pt", cache_dir=self.hparam.load_model_directory)
 
         # Classification head
         self.head = nn.Sequential(
             nn.Linear(self.encoder_features, self.encoder_features),
-            nn.Linear(self.encoder_features, self.num_labels),
-            nn.Tanh(),
+            nn.Linear(self.encoder_features, self.num_labels)
         )
         if self.hparam.loss == "contrastive": 
             self.make_hook()
@@ -122,7 +118,8 @@ class ProtBertClassifier(pl.LightningModule):
 
     def __build_loss_ner(self):
         """ Initializes the loss function/s. """
-        self._loss = CRF(num_tags=self.num_labels, batch_first=True)
+#         self._loss = CRF(num_tags=self.num_labels, batch_first=True)
+        self._loss = torch.nn.BCEWithLogitsLoss(reduction="none")
 
     def compute_logits_CURL(self, z_a, z_pos):
         """
@@ -256,8 +253,9 @@ class ProtBertClassifier(pl.LightningModule):
             Dictionary with model outputs (e.g: logits)
         """
         word_embeddings = self.model(input_ids=input_ids, token_type_ids=token_type_ids,
-                                           attention_mask=attention_mask)[0] #last_hidden_state
+                                           attention_mask=attention_mask)[0] #last_hidden_state (BLC)
         logits = self.head(word_embeddings) #BLC
+        
         if return_dict:
             if self.hparam.loss == "ner":
                 return {"logits": logits} #BLC
@@ -265,7 +263,7 @@ class ProtBertClassifier(pl.LightningModule):
             if self.hparam.loss == "ner":
                 return logits #BLC
 
-    def loss(self, predictions: dict, targets: torch.Tensor) -> torch.tensor:
+    def loss(self, predictions: dict, targets: dict) -> torch.tensor:
         """
         Computes Loss value according to a loss function.
         :param predictions: model specific output. Must contain a key 'logits' with
@@ -277,26 +275,11 @@ class ProtBertClassifier(pl.LightningModule):
         if self.hparam.loss == "classification" and not self.ner:
             return self._loss(predictions["logits"], targets["labels"].view(-1, )) #Crossentropy ;; input: (B,2) target (B,)
         elif self.hparam.loss == "classification" and self.ner:
-            return self._loss(predictions["logits"], targets["labels"].view(-1, self.num_labels)) #CRF ;; input (B,L,C) target (B,L) ;; B->num_frames & L->num_aa_residues & C->num_lipid_types
+#             return self._loss(predictions["logits"], targets["labels"].view(-1, self.num_labels)) #CRF ;; input (B,L,C) target (B,L) ;; B->num_frames & L->num_aa_residues & C->num_lipid_types
+            return self._loss(predictions["logits"], targets["labels"]) #CRF ;; input (B,L,C) target (B,L,C) ;; 
         elif self.hparam.loss == "contrastive":
             return self.compute_logits_CURL(predictions["logits"], predictions["logits"]) #Crossentropy -> Need second pred to be transformed! each pred is (B,z_dim) shape
 
-    # def prepare_sample(self, sample: list) -> (dict, dict):
-    #     """
-    #     Function that prepares a sample to input the model.
-    #     :param sample: list of dictionaries.
-        
-    #     Returns:
-    #         - dictionary with the expected model inputs.
-    #         - dictionary with the expected target labels.
-    #     """
-    #     inputs = self.tokenizer.batch_encode_plus(sample["seq"],
-    #                                               add_special_tokens=True,
-    #                                               padding=True,
-    #                                               truncation=True,
-    #                                               max_length=self.hparam.max_length)
-
-    #     return inputs, sample[]
     def on_train_epoch_start(self, ) -> None:
         self.metric_acc = torchmetrics.Accuracy()
         #self.loss_log_for_train = []
@@ -315,7 +298,9 @@ class ProtBertClassifier(pl.LightningModule):
         inputs, targets = batch #Both are tesors
         #print(inputs, targets, "VALUE!!")
         model_out = self.forward(**inputs) #logicts dictionary
-        loss_train = self.loss(model_out, targets) #scalar loss
+        loss_train = self.loss(model_out, targets) #BLC
+        loss_train = loss_train * targets["target_invalid_lipids"][:,None,:]
+        
         y = targets["labels"].view(-1,)
         y_hat = model_out["logits"]
         labels_hat = torch.argmax(y_hat, dim=-1).to(y)
@@ -530,33 +515,58 @@ class ProtBertClassifier(pl.LightningModule):
         """ Sets different Learning rates for different parameter groups. """
         parameters = [
             {"params": self.head.parameters()},
-            {
-                "params": self.model.parameters(), 
-            },
-        ]
-        optimizer = optim.AdamW(parameters, lr=self.hparam.learning_rate)
-        return [optimizer], []
+            {"params": self.model.parameters()},
+            ]
+        if self.hparam.optimizer == "adafactor":
+            optimizer = Adafactor(parameters, relative_step=True)
+        elif self.hparam.optimizer == "adamw":
+            optimizer = torch.optim.AdamW(parameters, lr=self.hparam.learning_rate)
+        total_training_steps = len(self.train_dataloader()) * self.hparam.max_epochs
+        warmup_steps = total_training_steps // self.hparam.warm_up_split
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer,
+            num_warmup_steps=warmup_steps,
+            num_training_steps=total_training_steps,
+        )
+#         optimizer = {"optimizer": optimizer, "frequency": 1}
+        #https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html#:~:text=is%20shown%20below.-,lr_scheduler_config,-%3D%20%7B%0A%20%20%20%20%23%20REQUIRED
+        scheduler = {"scheduler": scheduler, "interval": "step", "frequency": 1} #Every step/epoch with Frequency 1etc by monitoring val_loss if needed
 
-    def tokenizing(self, stage="train"):
-        x = []
-        for i in range(len(self.dataset[stage]["Seq"])):
-            x.append(' '.join(self.dataset[stage]["Seq"][i]))
-        proper_inputs = x #Spaced btw letters
+        return [optimizer], [scheduler]
     
-        inputs = self.tokenizer.batch_encode_plus(proper_inputs,
-                                          add_special_tokens=True,
-                                          padding=True,
-                                          truncation=True, return_tensors="pt",
-                                          max_length=self.hparam.max_length) #Tokenize inputs as a dict type of Tensors
-        targets = self.dataset[stage]["label"] #list type
-        targets = torch.Tensor(targets).view(len(targets), -1).long() #target is originally list -> change to Tensor (B,1)
+    @staticmethod
+    def _get_split_sizes(train_frac: float, full_dataset: torch.utils.data.Dataset) -> Tuple[int, int, int]:
+        """DONE: Need to change split schemes!"""
+        len_full = len(full_dataset)
+        len_train = int(len_full * train_frac)
+        len_test = int(0.1 * len_full)
+        len_val = len_full - len_train - len_test
+        return len_train, len_val, len_test  
+    
+    def load_dataset(self, stage="train"):
+        if self.hparam.save_to_file != None:
+            if os.path.exists(self.hparam.save_to_file):
+                filename = os.path.splitext(self.hparam.save_to_file)[0] + ".pickle"
+                dataset = dl.SequenceDataset.load_saved_dataset(filename)
+            else:
+                dataset = dl.SequenceDataset.from_directory(self.hparam.json_directory, self.hparam)
+        else:
+            dataset = dl.SequenceDataset.from_directory(self.hparam.json_directory, self.hparam)
+        train, val, test = torch.utils.data.random_split(dataset, self._get_split_sizes(self.hparam.train_frac, dataset),
+                                                                generator=torch.Generator().manual_seed(0))
         
-        dataset = dl.SequenceDataset(inputs, targets)
+        if stage == "train":
+            dataset = train
+        elif stage == "val":
+            dataset = val
+        elif stage == "test":
+            dataset = val
+        
         return dataset #torch Dataset
 
     def train_dataloader(self) -> DataLoader:
         """ Function that loads the train set. """
-        self._train_dataset = self.tokenizing(stage="train")
+        self._train_dataset = self.load_dataset(stage="train")
         return DataLoader(
             dataset=self._train_dataset,
             sampler=torch.utils.data.RandomSampler(self._train_dataset),
@@ -566,7 +576,7 @@ class ProtBertClassifier(pl.LightningModule):
 
     def val_dataloader(self) -> DataLoader:
         """ Function that loads the validation set. """
-        self._dev_dataset = self.tokenizing(stage="test")
+        self._dev_dataset = self.load_dataset(stage="test")
         return DataLoader(
             dataset=self._dev_dataset,
             batch_size=self.hparam.batch_size,
@@ -575,7 +585,7 @@ class ProtBertClassifier(pl.LightningModule):
 
     def test_dataloader(self) -> DataLoader:
         """ Function that loads the validation set. """
-        self._test_dataset = self.tokenizing(stage="test")
+        self._test_dataset = self.load_dataset(stage="test")
         return DataLoader(
             dataset=self._test_dataset,
             batch_size=self.hparam.batch_size,
