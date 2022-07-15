@@ -45,7 +45,8 @@ class SequenceDataset(torch.utils.data.Dataset):
         token_type_ids = self.inputs["token_type_ids"][idx] #B, L
         attention_mask = self.inputs["attention_mask"][idx] #B, L
         input_reformats = {'input_ids': input_ids, 'token_type_ids': token_type_ids, 'attention_mask': attention_mask}
-        target_reformats = {"labels": torch.from_numpy(self.targets["labels"][idx]).type(torch.float32),
+        target_reformats = {"labels": torch.from_numpy(self.targets["labels"][idx]).type(torch.long),
+                            "coeffs": torch.from_numpy(self.targets["coeffs"][idx]).type(torch.float32),
                             "target_invalid_lipids": torch.from_numpy(self.targets["target_invalid_lipids"].reshape(-1,)).type(torch.bool)}
         
         return input_reformats, target_reformats
@@ -82,8 +83,8 @@ class SequenceDataset(torch.utils.data.Dataset):
         with open(filename, "r") as f:
             data = json.load(f)
         assert isinstance(data, dict), "wrong data format!"        
-        masked_lipids = SequenceDataset.check_unique_lipid(data) #Get valid lipid types from trajectory
-        
+        masked_lipids = SequenceDataset.check_unique_lipid(data) #Get valid lipid types from trajectory; shape (duplicates, (num_res OR augment), 8)
+
         if augment:
             seq_original = list(data.keys()) #e.g. TYR-483-PROA; len(seq) = num_res
             #Below: starting key selection index
@@ -133,9 +134,8 @@ class SequenceDataset(torch.utils.data.Dataset):
         lip_data: np.ndarray = SequenceDataset.parse_json_file(data, return_lip_data=True) #(1,padded_seq) for one dataset
         assert lip_data.ndim == 4, "dimension of lipid array data is wrong..."
         masked_lip_data = ~(np.apply_along_axis(func1d=lambda inp: np.sum(inp**2), axis=-1, arr=lip_data) == 0.) # --> duplicates, (num_res OR augment), 8
-        masked_lipids = np.any(masked_lip_data, axis=1) ## --> duplicates, 8
 #         print(masked_lipids)
-        return masked_lipids #non-existing lipids will be False; else True
+        return np.any(masked_lip_data, axis=1) ## --> duplicates, 8 #non-existing lipids will be False; else True (shape: duplicates, (num_res OR augment), 8) and (duplicates, 8) each
     
     @staticmethod
     def data_preprocessing(split_txt: np.ndarray, seq: List[str]):
@@ -194,7 +194,8 @@ class SequenceDataset(torch.utils.data.Dataset):
         pad_to_lip = np.broadcast_to(pad_to_lip, (len(proper_inputs), *pad_to_lip.shape)) #(duplicates, pad_to_lip, 8, 3)
         lip_data = np.concatenate((lip_data, pad_to_lip), axis=1) #make (duplicates, (num_res OR augment)+pad_to_lip, 8, 3) = (duplicates, padde_sequence, 8, 3)
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
-        targets = {"labels": lip_data, "target_invalid_lipids": masked_lipids}
+        lip_labels = ~(np.apply_along_axis(func1d=lambda inp: np.sum(inp**2), axis=-1, arr=lip_data) == 0.) # --> duplicates, (num_res OR augment), 8
+        targets = {"labels": lip_labels, "coeffs": lip_data, "target_invalid_lipids": masked_lipids} #lip_data (coeff); lip_labels (labels)
         return inputs, targets
     
     @staticmethod
