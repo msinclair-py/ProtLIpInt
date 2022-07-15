@@ -42,11 +42,12 @@ def get_args():
     parser.add_argument('--min-epochs', default=1, type=int, help='number of epochs min')
     parser.add_argument('--batch-size', '-b', default=2048, type=int, help='batch size')
     parser.add_argument('--learning-rate', '-lr', default=1e-3, type=float, help='learning rate')
-    parser.add_argument('--ngpus', type=int, default=-1, help='Number of GPUs, -1 use all available. Use CUDA_VISIBLE_DEVICES=1, to decide gpus')
+    parser.add_argument('--ngpus', default="auto", help='Number of GPUs, -1 use all available. Use CUDA_VISIBLE_DEVICES=1, to decide gpus')
     parser.add_argument('--num-nodes', type=int, default=1, help='Number of nodes')
     parser.add_argument('--warm-up-split', type=int, default=5, help='warmup times')
     parser.add_argument('--scheduler', type=str, default="cosine", help='scheduler type')
-    parser.add_argument('--accelerator', "-accl", type=str, default="gpu", help='accelerator type')
+    parser.add_argument('--accelerator', "-accl", type=str, default="gpu", help='accelerator type', choices=["cpu","gpu","tpu"])
+    parser.add_argument('--strategy', "-st", default="ddp", help='accelerator type', choices=["ddp_spawn","ddp","dp","ddp2","horovod","none"])
 
     #Misc.
     parser.add_argument('--seed', type=int, default=42, help='seeding number')
@@ -67,7 +68,6 @@ def get_args():
     parser.add_argument('--ner-config', '-nc', type=str, default=None, help='NER config')
     parser.add_argument('--augment', type=int, default=0, help='window for data augmentation for AA residues')
     parser.add_argument('--save_to_file', type=str, default=None, help='save dataset')
-
 
     args = parser.parse_args()
     return args
@@ -117,38 +117,54 @@ def _main():
     # 5 INIT SWA CALLBACK
     #  -------------------------------
     # Stochastic Weight Averaging
-    #rsummary_callback = pl.callbacks.RichModelSummary() #Not in this PL version
+    rsummary_callback = pl.callbacks.RichModelSummary() #Not in this PL version
 
     # --------------------------------
     # 6 INIT MISC CALLBACK
     #  -------------------------------
     # MISC
-    progbar_callback = pl.callbacks.ProgressBar()
+#     progbar_callback = pl.callbacks.ProgressBar()
     timer_callback = pl.callbacks.Timer()
-    #tqdmbar_callback = pl.callbacks.TQDMProgressBar()
-
+    tqdmbar_callback = pl.callbacks.TQDMProgressBar()
+    
     # ------------------------
     # N INIT TRAINER
     # ------------------------
-    #tb_logger = pl.loggers.TensorBoardLogger("tb_logs", name="my_model")
-    plugins = DDPPlugin(find_unused_parameters=False) if hparams.accelerator == "ddp" else None
-
+    csv_logger = pl.loggers.CSVLogger(save_dir=hparams.load_model_directory)
+#     plugins = DDPPlugin(find_unused_parameters=False) if hparams.accelerator == "ddp" else None
+    
+    # ------------------------
+    # MISC.
+    # ------------------------
+    if hparams.load_model_checkpoint:
+        resume_ckpt = os.path.join(hparams.load_model_directory, hparams.load_model_checkpoint)
+    else:
+        resume_ckpt = None
+        
+    if hparams.strategy in ["none", None]:
+        hparams.strategy = None
+        
     trainer = pl.Trainer(
-    accelerator=hparams.accelerator,
-    gpus=hparams.ngpus,
-    max_epochs=hparams.max_epochs,
-    min_epochs=hparams.min_epochs,
-    callbacks = [early_stop_callback, checkpoint_callback, swa_callback, progbar_callback, timer_callback],
-    precision=hparams.precision,
-    amp_backend=hparams.amp_backend,
-    deterministic=False,
-    default_root_dir=hparams.load_model_directory,
-    num_sanity_val_steps = hparams.sanity_checks,
-    plugins = plugins,
-    resume_from_checkpoint=os.path.join(hparams.load_model_directory, hparams.load_model_checkpoint) if hparams.load_model_checkpoint else None
+        logger=[csv_logger],
+        max_epochs=hparams.max_epochs,
+        min_epochs=hparams.min_epochs,
+        callbacks = [early_stop_callback, checkpoint_callback, swa_callback, rsummary_callback, tqdmbar_callback, timer_callback],
+        precision=hparams.precision,
+        amp_backend=hparams.amp_backend,
+        deterministic=False,
+        default_root_dir=hparams.load_model_directory,
+        num_sanity_val_steps = hparams.sanity_checks,
+        log_every_n_steps=4,
+        gradient_clip_algorithm="norm",
+        gradient_clip_val=1.,
+        devices=hparams.ngpus,
+        strategy=hparams.strategy,
+        accelerator=hparams.accelerator,
+        auto_select_gpus=True
     )
 
-    trainer.fit(model)
+    trainer.fit(model, ckpt_path=resume_ckpt) #New API!
+
 
 if __name__ == "__main__":
     _main()
