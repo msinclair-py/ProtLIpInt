@@ -220,7 +220,7 @@ class SequenceDataset(torch.utils.data.Dataset):
             save_to_file = os.path.splitext(hparams.save_to_file)[0] + ".pickle"
 #             torch.save(concat_dataset, f"{save_to_file}")
             with open(save_to_file, "wb") as f:
-                pickle.dump(concat_dataset, save_to_file)
+                pickle.dump(concat_dataset, f)
         return concat_dataset
     
     @staticmethod
