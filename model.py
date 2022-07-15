@@ -55,7 +55,7 @@ class ProtBertClassifier(pl.LightningModule):
         _ = self.__build_model() if not self.ner else self.__build_model_ner()
 
         # Loss criterion initialization.
-        _ = self.__build_loss() if not self.ner else self.__build_model_ner()
+        _ = self.__build_loss() if not self.ner else self.__build_loss_ner()
 
         self.freeze_encoder()
 
@@ -257,10 +257,10 @@ class ProtBertClassifier(pl.LightningModule):
         logits = self.head(word_embeddings) #BLC
         
         if return_dict:
-            if self.hparam.loss == "ner":
+            if self.hparam.loss == "classification":
                 return {"logits": logits} #BLC
         else:
-            if self.hparam.loss == "ner":
+            if self.hparam.loss == "classification":
                 return logits #BLC
 
     def loss(self, predictions: dict, targets: dict) -> torch.tensor:
@@ -276,7 +276,7 @@ class ProtBertClassifier(pl.LightningModule):
             return self._loss(predictions["logits"], targets["labels"].view(-1, )) #Crossentropy ;; input: (B,2) target (B,)
         elif self.hparam.loss == "classification" and self.ner:
 #             return self._loss(predictions["logits"], targets["labels"].view(-1, self.num_labels)) #CRF ;; input (B,L,C) target (B,L) ;; B->num_frames & L->num_aa_residues & C->num_lipid_types
-            return self._loss(predictions["logits"], targets["labels"]) #CRF ;; input (B,L,C) target (B,L,C) ;; 
+            return self._loss(predictions["logits"][:,1:-1,:], targets["labels"].float()) #CRF ;; input (B,L,C) target (B,L,C) ;; 
         elif self.hparam.loss == "contrastive":
             return self.compute_logits_CURL(predictions["logits"], predictions["logits"]) #Crossentropy -> Need second pred to be transformed! each pred is (B,z_dim) shape
 
