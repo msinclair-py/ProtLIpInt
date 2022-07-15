@@ -224,6 +224,17 @@ class SequenceDataset(torch.utils.data.Dataset):
         return concat_dataset
     
     @staticmethod
+    def load_saved_dataset(filename: str):
+        class CustomUnpickler(pickle.Unpickler):
+            def find_class(self, module, name):
+                if name == 'SequenceDataset':
+                    from dataset import SequenceDataset
+                    return SequenceDataset
+                return super().find_class(module, name)
+        dataset = CustomUnpickler(open(f"{filename}.pickle","rb")).load()
+        return dataset
+    
+    @staticmethod
     def residue_length_check(filtered_files: List[str]):
         #for getting max_residue list
         resnum_list = []
