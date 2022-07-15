@@ -231,18 +231,19 @@ class SequenceDataset(torch.utils.data.Dataset):
         filename = os.path.splitext(filename)[0] + ".pickle"
         
         ####Solution 1.
-#         class CustomUnpickler(pickle.Unpickler):
-#             def find_class(self, module, name):
-#                 if name == 'SequenceDataset':
-#                     from dataset import SequenceDataset
-#                     return SequenceDataset
-#                 return super().find_class(module, name)
-#         dataset = CustomUnpickler(open(f"{filename}","rb")).load()
+        class CustomUnpickler(pickle.Unpickler):
+            def find_class(self, module, name):
+                if name == 'SequenceDataset':
+                    from dataset import SequenceDataset
+                    return SequenceDataset
+                return super().find_class(module, name)
+        dataset = CustomUnpickler(open(f"{filename}","rb")).load()
 
         ####Solution 2.
-        from dataset import SequenceDataset
-        f = open(f"{filename}","rb")
-        dataset = pickle.load(f)
+#         from dataset import SequenceDataset
+#         f = open(f"{filename}","rb")
+#         dataset = pickle.load(f)
+
         return dataset
     
     @staticmethod
