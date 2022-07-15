@@ -46,7 +46,7 @@ class ProtBertClassifier(pl.LightningModule):
         self.batch_size = self.hparam.batch_size
         self.model_name = self.hparam.model_name #"Rostlab/prot_bert_bfd"  
         self.ner = self.hparam.ner #bool
-        self.dataset = SequenceDataset.load_saved_dataset("data_compiled.pickle")
+#         self.dataset = SequenceDataset.load_saved_dataset("data_compiled.pickle")
         self.num_labels = 9 #WIP: placeholder
         self.z_dim = self.hparam.z_dim #Add this!
         if self.hparam.loss == "contrastive": self.register_parameter("W", torch.nn.Parameter(torch.rand(self.z_dim, self.z_dim))) #CURL purpose
