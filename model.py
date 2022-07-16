@@ -268,21 +268,21 @@ class ProtBertClassifier(pl.LightningModule):
 
     def select_nonspecial(self, predictions: dict, inputs: dict, targets: dict):
         logits = predictions["logits"] if self.return_dict else predictions #dict or tensor!
-        attention_mask = inputs["attention_mask"]
+        inputs_id = inputs["inputs_id"]
         labels = targets["labels"]
         target_invalid_lipids = targets["target_invalid_lipids"].view(-1,1,self.num_labels).expand_as(labels) #B,C -> B,L,C
 
 #         print(attention_mask.size(), logits.size(), labels.size())
-        assert logits.size()[:2] == attention_mask.size() and logits.size(0) == labels.size(0), "logits and attention mask and labels must have the same dimension for non-channels/batch, each" #B,L+2/3
+        assert logits.size()[:2] == inputs_id.size() and logits.size(0) == labels.size(0), "logits and inputs_id and labels must have the same dimension for non-channels/batch, each" #B,L+2/3
 #         attention_mask = attention_mask.view(-1,)[(attention_mask.view(-1,) >= 5)] # WIP: Must fix this for multi-segments: choose only non-specials tokens!
         ##WIP: Below only considers 1 segment OF the SAME SYSTEM!
-        attention_mask = (attention_mask.view(-1,) >= 5) 
+        inputs_id = (inputs_id.view(-1,) >= 5) 
         #ABOVE: https://gist.github.com/f1recracker/0f564fd48f15a58f4b92b3eb3879149b#:~:text=target%20%3D%20target%20*%20(target%20!%3D%20self.ignore_index).long()
-        attention_mask = attention_mask[attention_mask] #To make the same LENGTH as target_invalid_lipids!
-        attention_mask = attention_mask.view(-1,1).contiguous().expand(-1, self.num_labels) #(BL,) -> (BL,C);; type: torch.bool; choosing only non-special tokens!;; SAME length AS target_invalid_lipids!!
+        inputs_id = inputs_id[inputs_id] #To make the same LENGTH as target_invalid_lipids!
+        inputs_id = inputs_id.view(-1,1).contiguous().expand(-1, self.num_labels) #(BL,) -> (BL,C);; type: torch.bool; choosing only non-special tokens!;; SAME length AS target_invalid_lipids!!
         target_invalid_lipids: torch.ByteTensor = target_invalid_lipids.contiguous().view(-1, self.num_labels) #(BL,C)
         print(attention_mask.size(), target_invalid_lipids.size())
-        tmp_stack = torch.stack([attention_mask, target_invalid_lipids], dim=-1) #(BL,C,2)
+        tmp_stack = torch.stack([inputs_id, target_invalid_lipids], dim=-1) #(BL,C,2)
         boolean_tensor = tmp_stack.all(dim=-1).view(-1,) #(BL,C) -> (BLC,)
         
         predictions = predictions.contiguous().view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
