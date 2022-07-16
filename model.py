@@ -634,11 +634,11 @@ if __name__ == "__main__":
     
     model = ProtBertClassifier(hparams)
     outs = model(**inputs)
-    print(outs)
+#     print(outs)
     out, tar = model.select_nonspecial(outs, inputs, targets)
-    print(out,tar)
+#     print(out,tar)
     loss = model.loss(out,tar)
-    print(loss)
+#     print(loss)
     
 
     
