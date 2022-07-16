@@ -276,8 +276,10 @@ class ProtBertClassifier(pl.LightningModule):
         assert logits.size()[:2] == attention_mask.size() and logits.size(0) == labels.size(0), "logits and attention mask and labels must have the same dimension for non-channels/batch, each" #B,L+2/3
 #         attention_mask = attention_mask.view(-1,)[(attention_mask.view(-1,) >= 5)] # WIP: Must fix this for multi-segments: choose only non-specials tokens!
         ##WIP: Below only considers 1 segment OF the SAME SYSTEM!
-        attention_mask = (attention_mask.view(-1,1) >= 5).contiguous().expand(-1, self.num_labels) #(BL,) -> (BL,C);; type: torch.bool; choosing only non-special tokens!
+        attention_mask = (attention_mask.view(-1,) >= 5) 
         #ABOVE: https://gist.github.com/f1recracker/0f564fd48f15a58f4b92b3eb3879149b#:~:text=target%20%3D%20target%20*%20(target%20!%3D%20self.ignore_index).long()
+        attention_mask = attention_mask[attention_mask] #To make the same LENGTH as target_invalid_lipids!
+        attention_mask = attention_mask.view(-1,1).contiguous().expand(-1, self.num_labels) #(BL,) -> (BL,C);; type: torch.bool; choosing only non-special tokens!;; SAME length AS target_invalid_lipids!!
         target_invalid_lipids: torch.ByteTensor = target_invalid_lipids.contiguous().view(-1, self.num_labels) #(BL,C)
         tmp_stack = torch.stack([attention_mask, target_invalid_lipids], dim=-1) #(BL,C,2)
         boolean_tensor = tmp_stack.all(dim=-1).view(-1,) #(BL,C) -> (BLC,)
