@@ -20,7 +20,7 @@ import argparse
 from typing import *
 from torchcrf import CRF
 from dataset import SequenceDataset
-from curties import fmtfuncs as cf
+from curtsies import fmtfuncs as cf
 
 #https://github.com/HelloJocelynLu/t5chem/blob/main/t5chem/archived/MultiTask.py for more info
 
