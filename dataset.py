@@ -195,7 +195,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         pad_to_lip = np.broadcast_to(pad_to_lip, (len(proper_inputs), *pad_to_lip.shape)) #(duplicates, pad_to_lip, 8, 3)
         lip_data = np.concatenate((lip_data, pad_to_lip), axis=1) #make (duplicates, (num_res OR augment)+pad_to_lip, 8, 3) = (duplicates, padde_sequence, 8, 3)
         inputs = SequenceDataset.input_tokenizer(proper_inputs, hparams)
-        lip_labels = ~(np.apply_along_axis(func1d=lambda inp: np.sum(inp**2), axis=-1, arr=lip_data) == 0.) # --> duplicates, (num_res OR augment), 8
+        lip_labels = ~(np.apply_along_axis(func1d=lambda inp: np.sum(np.abs(inp)), axis=-1, arr=lip_data) == 0.) # --> duplicates, (num_res OR augment), 8
         targets = {"labels": lip_labels, "coeffs": lip_data, "target_invalid_lipids": masked_lipids} #lip_data (coeff); lip_labels (labels)
         return inputs, targets
     
