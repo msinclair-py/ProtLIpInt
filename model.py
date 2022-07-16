@@ -268,7 +268,7 @@ class ProtBertClassifier(pl.LightningModule):
 
     def select_nonspecial(self, predictions: dict, inputs: dict, targets: dict):
         logits = predictions["logits"] if self.return_dict else predictions #dict or tensor!
-        inputs_id = inputs["inputs_id"]
+        inputs_id = inputs["input_ids"]
         labels = targets["labels"]
         target_invalid_lipids = targets["target_invalid_lipids"].view(-1,1,self.num_labels).expand_as(labels) #B,C -> B,L,C
 
