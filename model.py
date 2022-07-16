@@ -224,6 +224,8 @@ class ProtBertClassifier(pl.LightningModule):
         Returns:
             Dictionary with model outputs (e.g: logits)
         """
+        self.return_dict = return_dict
+        
         word_embeddings = self.model(input_ids=input_ids, token_type_ids=token_type_ids,
                                            attention_mask=attention_mask)[0] #last_hidden_state
 
@@ -252,6 +254,7 @@ class ProtBertClassifier(pl.LightningModule):
         Returns:
             Dictionary with model outputs (e.g: logits)
         """
+        self.return_dict = return_dict
         word_embeddings = self.model(input_ids=input_ids, token_type_ids=token_type_ids,
                                            attention_mask=attention_mask)[0] #last_hidden_state (BLC)
         logits = self.head(word_embeddings) #BLC
@@ -263,6 +266,23 @@ class ProtBertClassifier(pl.LightningModule):
             if self.hparam.loss == "classification":
                 return logits #BLC
 
+    def select_nonspecial(self, predictions: dict, inputs: dict, targets: dict):
+        logits = predictions["logits"] if self.return_dict else predictions #dict or tensor!
+        attention_mask = inputs["attention_mask"]
+        labels = targets["labels"]
+        target_invalid_lipids = targets["target_invalid_lipids"].view(-1,1,self.num_labels).expand_as(labels) #B,C -> B,L,C
+
+        assert logits.size()[:2] == attention_mask.size() and logits.size() == labels.size(), "logits and attention mask and labels must have the same dimension for non-channels/all, each" #B,L+2/3
+        attention_mask = (attention_mask.view(-1,) >= 5).expand(-1, self._num_labels) #(BL,) -> (BL,C);; type: torch.bool; choosing only non-special tokens!
+        #ABOVE: https://gist.github.com/f1recracker/0f564fd48f15a58f4b92b3eb3879149b#:~:text=target%20%3D%20target%20*%20(target%20!%3D%20self.ignore_index).long()
+        target_invalid_lipids: torch.ByteTensor = target_invalid_lipids.view(-1, self.num_labels) #(BL,C)
+        tmp_stack = torch.stack([attention_mask, target_invalid_lipids], dim=-1) #(BL,C,2)
+        boolean_tensor = tmp_stack.all(dim=-1).view(-1,) #(BL,C) -> (BLC,)
+        
+        predictions = predictions.view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
+        labels = labels.view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
+        return predictions, labels
+        
     def loss(self, predictions: dict, targets: dict) -> torch.tensor:
         """
         Computes Loss value according to a loss function.
@@ -276,7 +296,7 @@ class ProtBertClassifier(pl.LightningModule):
             return self._loss(predictions["logits"], targets["labels"].view(-1, )) #Crossentropy ;; input: (B,2) target (B,)
         elif self.hparam.loss == "classification" and self.ner:
 #             return self._loss(predictions["logits"], targets["labels"].view(-1, self.num_labels)) #CRF ;; input (B,L,C) target (B,L) ;; B->num_frames & L->num_aa_residues & C->num_lipid_types
-            return self._loss(predictions["logits"][:,1:-1,:], targets["labels"].float()) #CRF ;; input (B,L,C) target (B,L,C) ;; 
+            return self._loss(predictions, targets.float()) #CRF ;; input (num_trues,C) target (num_trues,C) ;; 
         elif self.hparam.loss == "contrastive":
             return self.compute_logits_CURL(predictions["logits"], predictions["logits"]) #Crossentropy -> Need second pred to be transformed! each pred is (B,z_dim) shape
 
@@ -298,8 +318,9 @@ class ProtBertClassifier(pl.LightningModule):
         inputs, targets = batch #Both are tesors
         #print(inputs, targets, "VALUE!!")
         model_out = self.forward(**inputs) #logicts dictionary
+        model_out, targets = self.select_nonspecial(model_out, inputs, targets)
         loss_train = self.loss(model_out, targets) #BLC
-        loss_train = loss_train * targets["target_invalid_lipids"][:,None,:]
+#         loss_train = loss_train * targets["target_invalid_lipids"][:,None,:]
         
         y = targets["labels"].view(-1,)
         y_hat = model_out["logits"]
@@ -591,3 +612,22 @@ class ProtBertClassifier(pl.LightningModule):
             batch_size=self.hparam.batch_size,
             num_workers=self.hparam.num_workers,
         )
+
+if __name__ == "__main__":
+    from train import get_args
+    hparams = get_args()
+    ds = SequenceDataset.from_directory("/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", hparams) #concat dataset instance
+    dl = torch.utils.data.DataLoader(ds, batch_size=15)   
+    one_ds = iter(dl).next()
+    inputs, targets = one_ds
+    
+    model = ProtBertClassifier(hparams)
+    outs = model(**inputs)
+    print(outs)
+    out, tar = model.select_nonspecial(outs, inputs, targets)
+    print(out,tar)
+    loss = model.loss(out,tar)
+    print(loss)
+    
+
+    
