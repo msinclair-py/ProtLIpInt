@@ -272,10 +272,9 @@ class ProtBertClassifier(pl.LightningModule):
         inputs_id = inputs["input_ids"][:,1:-1] #Remove [CLS] and last [SEP]
         labels = targets["labels"]
         target_invalid_lipids = targets["target_invalid_lipids"].view(-1,1,self.num_labels).expand_as(labels) #B,C -> B,L,C
-        print(inputs_id.size(), logits.size(), labels.size())
-
+#         print(inputs_id.size(), logits.size(), labels.size())
         
-        assert logits.size()[:2] == inputs_id.size() and logits.size()[:2] == labels.size(), "logits and inputs_id and labels must have the same dimension for non-channels, each" #B,L+2/3
+        assert logits.size()[:2] == inputs_id.size() and logits.size() == labels.size(), "logits and inputs_id and labels must have the same dimension for non-channels/all, each" #B,L+2/3
 #         attention_mask = attention_mask.view(-1,)[(attention_mask.view(-1,) >= 5)] # WIP: Must fix this for multi-segments: choose only non-specials tokens!
         ##WIP: Below only considers 1 segment OF the SAME SYSTEM!
         inputs_id = inputs_id.view(-1,1).contiguous().expand(-1, self.num_labels) #(BL,) -> (BL,C);; type: torch.bool; choosing only non-special tokens!;; SAME length AS target_invalid_lipids!!
