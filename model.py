@@ -268,19 +268,21 @@ class ProtBertClassifier(pl.LightningModule):
 
     def select_nonspecial(self, predictions: dict, inputs: dict, targets: dict):
         logits = predictions["logits"] if self.return_dict else predictions #dict or tensor!
-        inputs_id = inputs["input_ids"]
+        logits = [:,1:-1,:] #Remove [CLS] and last [SEP]
+        inputs_id = inputs["input_ids"][:,1:-1,:] #Remove [CLS] and last [SEP]
         labels = targets["labels"]
         target_invalid_lipids = targets["target_invalid_lipids"].view(-1,1,self.num_labels).expand_as(labels) #B,C -> B,L,C
-        print(inputs_id.size(), logits.size(), labels.size())
+#         print(inputs_id.size(), logits.size(), labels.size())
 
-        assert logits.size()[:2] == inputs_id.size() and logits.size(0) == labels.size(0), "logits and inputs_id and labels must have the same dimension for non-channels/batch, each" #B,L+2/3
+        assert logits.size()[:2] == inputs_id.size() and logits.size()[:2] == labels.size(), "logits and inputs_id and labels must have the same dimension for non-channels, each" #B,L+2/3
 #         attention_mask = attention_mask.view(-1,)[(attention_mask.view(-1,) >= 5)] # WIP: Must fix this for multi-segments: choose only non-specials tokens!
         ##WIP: Below only considers 1 segment OF the SAME SYSTEM!
-        inputs_id = (inputs_id.view(-1,) >= 5) 
-        #ABOVE: https://gist.github.com/f1recracker/0f564fd48f15a58f4b92b3eb3879149b#:~:text=target%20%3D%20target%20*%20(target%20!%3D%20self.ignore_index).long()
-        inputs_id = inputs_id[inputs_id] #To make the same LENGTH as target_invalid_lipids!
         inputs_id = inputs_id.view(-1,1).contiguous().expand(-1, self.num_labels) #(BL,) -> (BL,C);; type: torch.bool; choosing only non-special tokens!;; SAME length AS target_invalid_lipids!!
-        target_invalid_lipids: torch.ByteTensor = target_invalid_lipids.contiguous().view(-1, self.num_labels) #(BL,C)
+        inputs_id = (inputs_id.view(-1,) >= 5) #(BL,C) -> (BLC,) ;; Remove intermediate [PAD] and [SEP] preprocess
+        #ABOVE: https://gist.github.com/f1recracker/0f564fd48f15a58f4b92b3eb3879149b#:~:text=target%20%3D%20target%20*%20(target%20!%3D%20self.ignore_index).long()
+#         inputs_id = inputs_id[inputs_id] #To make the same LENGTH as target_invalid_lipids!
+        target_invalid_lipids: torch.ByteTensor = target_invalid_lipids.contiguous().view(-1,) #(BLC, )
+        assert len(inputs_id) == len(target_invalid_lipids), "1-D tensor must have the same length..."
         
         print(inputs_id.size(), target_invalid_lipids.size())
         tmp_stack = torch.stack([inputs_id, target_invalid_lipids], dim=-1) #(BL,C,2)
