@@ -269,7 +269,7 @@ class ProtBertClassifier(pl.LightningModule):
     def select_nonspecial(self, predictions: dict, inputs: dict, targets: dict):
         logits = predictions["logits"] if self.return_dict else predictions #dict or tensor!
         logits = logits[:,1:-1,:] #Remove [CLS] and last [SEP]
-        inputs_id = inputs["input_ids"][:,1:-1,:] #Remove [CLS] and last [SEP]
+        inputs_id = inputs["input_ids"][:,1:-1] #Remove [CLS] and last [SEP]
         labels = targets["labels"]
         target_invalid_lipids = targets["target_invalid_lipids"].view(-1,1,self.num_labels).expand_as(labels) #B,C -> B,L,C
 #         print(inputs_id.size(), logits.size(), labels.size())
@@ -285,8 +285,8 @@ class ProtBertClassifier(pl.LightningModule):
         assert len(inputs_id) == len(target_invalid_lipids), "1-D tensor must have the same length..."
         
         print(inputs_id.size(), target_invalid_lipids.size())
-        tmp_stack = torch.stack([inputs_id, target_invalid_lipids], dim=-1) #(BL,C,2)
-        boolean_tensor = tmp_stack.all(dim=-1).view(-1,) #(BL,C) -> (BLC,)
+        tmp_stack = torch.stack([inputs_id, target_invalid_lipids], dim=-1) #(BLC,2)
+        boolean_tensor = tmp_stack.all(dim=-1).view(-1,) #(BLC,2) -> (BLC,)
         
         predictions = predictions.contiguous().view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
         labels = labels.contiguous().view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
