@@ -284,7 +284,7 @@ class ProtBertClassifier(pl.LightningModule):
 #         inputs_id = inputs_id[inputs_id] #To make the same LENGTH as target_invalid_lipids!
         target_invalid_lipids: torch.ByteTensor = target_invalid_lipids.contiguous().view(-1,) #(BLC, )
         assert len(inputs_id) == len(target_invalid_lipids), "1-D tensor must have the same length..."
-        
+        print(len(inputs_id), len(target_invalid_lipids), len(logits.contiguous().view(-1,), len(labels.contiguous().view(-1,) )
 #         print(inputs_id.size(), target_invalid_lipids.size())
         tmp_stack = torch.stack([inputs_id, target_invalid_lipids], dim=-1) #(BLC,2)
         boolean_tensor = tmp_stack.all(dim=-1).view(-1,) #(BLC,2) -> (BLC,)
