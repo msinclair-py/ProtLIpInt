@@ -288,8 +288,9 @@ class ProtBertClassifier(pl.LightningModule):
         tmp_stack = torch.stack([inputs_id, target_invalid_lipids], dim=-1) #(BLC,2)
         boolean_tensor = tmp_stack.all(dim=-1).view(-1,) #(BLC,2) -> (BLC,)
         
-        predictions = predictions.contiguous().view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
+        predictions = logits.contiguous().view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
         labels = labels.contiguous().view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
+        print(len(predictions))
         return predictions, labels
         
     def loss(self, predictions: dict, targets: dict) -> torch.tensor:
