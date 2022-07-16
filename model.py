@@ -273,7 +273,7 @@ class ProtBertClassifier(pl.LightningModule):
         target_invalid_lipids = targets["target_invalid_lipids"].view(-1,1,self.num_labels).expand_as(labels) #B,C -> B,L,C
 
         print(attention_mask.size(), logits.size(), labels.size())
-        assert logits.size()[:2] == attention_mask.size() and logits.size() == labels.size(), "logits and attention mask and labels must have the same dimension for non-channels/all, each" #B,L+2/3
+        assert logits.size()[:2] == attention_mask.size() and logits.size(0) == labels.size(0), "logits and attention mask and labels must have the same dimension for non-channels/batch, each" #B,L+2/3
         attention_mask = (attention_mask.view(-1,) >= 5).expand(-1, self._num_labels) #(BL,) -> (BL,C);; type: torch.bool; choosing only non-special tokens!
         #ABOVE: https://gist.github.com/f1recracker/0f564fd48f15a58f4b92b3eb3879149b#:~:text=target%20%3D%20target%20*%20(target%20!%3D%20self.ignore_index).long()
         target_invalid_lipids: torch.ByteTensor = target_invalid_lipids.view(-1, self.num_labels) #(BL,C)
