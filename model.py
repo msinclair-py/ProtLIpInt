@@ -119,7 +119,7 @@ class ProtBertClassifier(pl.LightningModule):
     def __build_loss_ner(self):
         """ Initializes the loss function/s. """
 #         self._loss = CRF(num_tags=self.num_labels, batch_first=True)
-        self._loss = torch.nn.BCEWithLogitsLoss(reduction="none")
+        self._loss = torch.nn.BCEWithLogitsLoss(reduction="mean")
 
     def compute_logits_CURL(self, z_a, z_pos):
         """
@@ -284,13 +284,14 @@ class ProtBertClassifier(pl.LightningModule):
         target_invalid_lipids: torch.ByteTensor = target_invalid_lipids.contiguous().view(-1,) #(BLC, )
         assert len(inputs_id) == len(target_invalid_lipids), "1-D tensor must have the same length..."
         
-        print(inputs_id.size(), target_invalid_lipids.size())
+#         print(inputs_id.size(), target_invalid_lipids.size())
         tmp_stack = torch.stack([inputs_id, target_invalid_lipids], dim=-1) #(BLC,2)
         boolean_tensor = tmp_stack.all(dim=-1).view(-1,) #(BLC,2) -> (BLC,)
         
         predictions = logits.contiguous().view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
         labels = labels.contiguous().view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
-        print(len(predictions))
+#         print(len(predictions))
+        
         return predictions, labels
         
     def loss(self, predictions: dict, targets: dict) -> torch.tensor:
