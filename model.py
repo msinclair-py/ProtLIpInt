@@ -20,6 +20,7 @@ import argparse
 from typing import *
 from torchcrf import CRF
 from dataset import SequenceDataset
+from curties import fmtfuncs as cf
 
 #https://github.com/HelloJocelynLu/t5chem/blob/main/t5chem/archived/MultiTask.py for more info
 
@@ -290,7 +291,9 @@ class ProtBertClassifier(pl.LightningModule):
         
         predictions = logits.contiguous().view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
         labels = labels.contiguous().view(-1,)[boolean_tensor] #(BLC,) -> (num_trues)
-#         print(len(predictions))
+        
+        print(cf.green(f"""Originally {len(boolean_tensor)} elements without [CLS] and last [SEP], 
+                       reduced to {len(predictions)} accounting for special token removal..."""))
         
         return predictions, labels
         
