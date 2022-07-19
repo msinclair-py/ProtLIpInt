@@ -454,15 +454,17 @@ if __name__ == '__main__':
     
     # combine all data into master checkpoint file, clean up files
     print('Writing out master data file and cleaning up` datafiles/`')
-    
+   
+    identifier = f"{filepath.split('/')[2]}_{filepath.split('/')[-1]}_{system}"
+
     if first and last:
-        outname = f'{system}_{first}_{last}'
+        outname = f'{identifier}_{first}_{last}'
     elif first:
-        outname = f'{system}_{first}_end'
+        outname = f'{identifier}_{first}_end'
     elif last:
-        outname = f'{system}_start_{last}'
+        outname = f'{identifier}_start_{last}'
     else:
-        outname = f'{system}_start_end'
+        outname = f'{identifier}_start_end'
 
     master = merge_data(n_workers, tmp)
     with open(f'{out}/raw_data_{outname}.json', 'w') as f:

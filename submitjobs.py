@@ -33,7 +33,7 @@ aux = [
         '48', 'D2.1.', 'hmmm-step5_assembly.xplor_ext', 'hmmm'],
     ['equ\\.[0-9]{1,2}.dcd', 'dcd', numDCDs, '48', 'equ_4/equ.', 'ini/ionized', 'namd'],
     ['equ\\.[0-9]{1,2}.dcd', 'dcd', numDCDs, '48', 'equ_4/equ.', 'ini/ionized', 'namd'],
-    ['equ_[0-9].dcd', 'dcd', numDCDs, '48', 'equ_3/equ_', 'ini/ionized', 'namd']
+    ['equ\\.[0-9].dcd', 'dcd', numDCDs, '48', 'equ_3/equ.', 'ini/ionized', 'namd']
 ]
 
 def natural_sort(l: list) -> list:
@@ -43,13 +43,14 @@ def natural_sort(l: list) -> list:
 
 
 def glob_re(pattern: str, strings: list) -> list:
-    if isinstance(strings[0], str):
-        fpath = os.path.
-    else:
-        fpath = os.path.commonpath(strings)
+    fpath = os.path.commonpath(strings)
+    if len(strings) == 1:
+        fpath = '/'.join(fpath.split('/')[:-1])
+
     temp = list(map(lambda x: os.path.basename(x), strings))
+
     culled = filter(re.compile(pattern).match, temp)
-    return [os.path.join(fpath, x) for x in culled]
+    return [ os.path.join(fpath, x) for x in culled ]
 
 
 def get_jname(p1: str, p2: str) -> str:
@@ -126,6 +127,7 @@ with open('submitter.txt','w') as outfile:
         if isinstance(submissions[_dir][0], list):
             for submission in submissions[_dir]:
                 submit = qsub + submission
+                print(f'Submitting: {submit}.....')
                 subprocess.run(submit)
         else:
             print('ERR OAR!')
