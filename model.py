@@ -21,6 +21,7 @@ from typing import *
 from torchcrf import CRF
 from dataset import SequenceDataset
 from curtsies import fmtfuncs as cf
+from sklearn.metrics import *
 
 #https://github.com/HelloJocelynLu/t5chem/blob/main/t5chem/archived/MultiTask.py for more info
 
@@ -336,11 +337,11 @@ class ProtBertClassifier(pl.LightningModule):
         loss_train = self.loss(model_out, targets) #BLC
 #         loss_train = loss_train * targets["target_invalid_lipids"][:,None,:]
         
-        y = targets["labels"].view(-1,)
-        y_hat = model_out["logits"]
-        labels_hat = torch.argmax(y_hat, dim=-1).to(y)
-        train_acc = self.metric_acc(labels_hat.detach().cpu().view(-1,), y.detach().cpu().view(-1,)) #Must mount tensors to CPU;;;; ALSO, val_acc should be returned!
-
+        y = targets #tensor
+        y_hat = model_out #tensor
+        accuracy_score, hamming_loss, precision_score, recall_score, f1_score
+        
+        
         output = {"train_loss": loss_train, "train_acc": train_acc} #NEVER USE ORDEREDDICT!!!!
         wandb.log(output)
         self.log("train_loss", loss_train, prog_bar=True)
