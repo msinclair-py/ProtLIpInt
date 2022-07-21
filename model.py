@@ -337,9 +337,9 @@ class ProtBertClassifier(pl.LightningModule):
         loss_train = self.loss(model_out, targets) #BLC
 #         loss_train = loss_train * targets["target_invalid_lipids"][:,None,:]
         
-        y = targets #tensor
-        y_hat = model_out #tensor
-        accuracy_score, hamming_loss, precision_score, recall_score, f1_score
+        y = targets #tensor; binary
+        y_hat = torch.nn.functional.sigmoid(model_out) #tensor; logits -> [0,1]
+        acc, ham, prec, rec, f1 = list(map(lambda func, accuracy_score, hamming_loss, precision_score, recall_score, f1_score
         
         
         output = {"train_loss": loss_train, "train_acc": train_acc} #NEVER USE ORDEREDDICT!!!!
