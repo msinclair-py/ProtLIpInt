@@ -339,8 +339,7 @@ class ProtBertClassifier(pl.LightningModule):
         
         y = targets #tensor; binary
         y_hat = torch.nn.functional.sigmoid(model_out) #tensor; logits -> [0,1]
-        acc, ham, prec, rec, f1 = list(map(lambda func, accuracy_score, hamming_loss, precision_score, recall_score, f1_score
-        
+        acc, ham, prec, rec, f1 = list(map(lambda func: func(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy()), (accuracy_score, hamming_loss, precision_score, recall_score, f1_score) ))
         
         output = {"train_loss": loss_train, "train_acc": train_acc} #NEVER USE ORDEREDDICT!!!!
         wandb.log(output)
