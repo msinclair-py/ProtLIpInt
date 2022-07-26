@@ -355,12 +355,12 @@ class ProtBertClassifier(pl.LightningModule):
             - Dictionary with metrics to be added to the lightning logger.  
         """
         #outputs = self.loss_log_for_train
-        train_loss_mean = torch.stack([x['loss'] for x in outputs]).mean()
-        train_acc_mean = torch.stack([x['train_acc'] for x in outputs]).mean()
-        train_ham_mean = torch.stack([x['train_ham'] for x in outputs]).mean()
-        train_prec_mean = torch.stack([x['train_prec'] for x in outputs]).mean()
-        train_rec_mean = torch.stack([x['train_rec'] for x in outputs]).mean()
-        train_f1_mean = torch.stack([x['train_f1'] for x in outputs]).mean()
+        train_loss_mean = torch.stack([torch.from_numpy(x['loss']) for x in outputs]).mean()
+        train_acc_mean = torch.stack([torch.from_numpy(x['train_acc']) for x in outputs]).mean()
+        train_ham_mean = torch.stack([torch.from_numpy(x['train_ham']) for x in outputs]).mean()
+        train_prec_mean = torch.stack([torch.from_numpy(x['train_prec']) for x in outputs]).mean()
+        train_rec_mean = torch.stack([torch.from_numpy(x['train_rec']) for x in outputs]).mean()
+        train_f1_mean = torch.stack([torch.from_numpy(x['train_f1']) for x in outputs]).mean()
 
         tqdm_dict = {"epoch_train_loss": train_loss_mean, "epoch_train_acc": train_acc_mean, "epoch_train_ham": train_ham_mean, "epoch_train_prec": train_prec_mean, "epoch_train_rec": train_rec_mean, "epoch_train_f1": train_f1_mean}
         wandb.log(tqdm_dict) 
@@ -399,12 +399,12 @@ class ProtBertClassifier(pl.LightningModule):
             - Dictionary with metrics to be added to the lightning logger.  
         """
         if not self.trainer.sanity_checking:
-            val_loss_mean = torch.stack([x['val_loss'] for x in outputs]).mean()
-            val_acc_mean = torch.stack([x['val_acc'] for x in outputs]).mean()
-            val_ham_mean = torch.stack([x['val_ham'] for x in outputs]).mean()
-            val_prec_mean = torch.stack([x['val_prec'] for x in outputs]).mean()
-            val_rec_mean = torch.stack([x['val_rec'] for x in outputs]).mean()
-            val_f1_mean = torch.stack([x['val_f1'] for x in outputs]).mean()
+            val_loss_mean = torch.stack([torch.from_numpy(x['val_loss']) for x in outputs]).mean()
+            val_acc_mean = torch.stack([torch.from_numpy(x['val_acc']) for x in outputs]).mean()
+            val_ham_mean = torch.stack([torch.from_numpy(x['val_ham']) for x in outputs]).mean()
+            val_prec_mean = torch.stack([torch.from_numpy(x['val_prec']) for x in outputs]).mean()
+            val_rec_mean = torch.stack([torch.from_numpy(x['val_rec']) for x in outputs]).mean()
+            val_f1_mean = torch.stack([torch.from_numpy(x['val_f1']) for x in outputs]).mean()
 
             tqdm_dict = {"epoch_val_loss": val_loss_mean, "epoch_val_acc": val_acc_mean, "epoch_val_ham": val_ham_mean, "epoch_val_prec": val_prec_mean, "epoch_val_rec": val_rec_mean, "epoch_val_f1": val_f1_mean}
             wandb.log(tqdm_dict) 
@@ -440,12 +440,12 @@ class ProtBertClassifier(pl.LightningModule):
         Returns:
             - Dictionary with metrics to be added to the lightning logger.  
         """
-        test_loss_mean = torch.stack([x['test_loss'] for x in outputs]).mean()
-        test_acc_mean = torch.stack([x['test_acc'] for x in outputs]).mean()
-        test_ham_mean = torch.stack([x['test_ham'] for x in outputs]).mean()
-        test_prec_mean = torch.stack([x['test_prec'] for x in outputs]).mean()
-        test_rec_mean = torch.stack([x['test_rec'] for x in outputs]).mean()
-        test_f1_mean = torch.stack([x['test_f1'] for x in outputs]).mean()
+        test_loss_mean = torch.stack([torch.from_numpy(x['test_loss']) for x in outputs]).mean()
+        test_acc_mean = torch.stack([torch.from_numpy(x['test_acc']) for x in outputs]).mean()
+        test_ham_mean = torch.stack([torch.from_numpy(x['test_ham']) for x in outputs]).mean()
+        test_prec_mean = torch.stack([torch.from_numpy(x['test_prec']) for x in outputs]).mean()
+        test_rec_mean = torch.stack([torch.from_numpy(x['test_rec']) for x in outputs]).mean()
+        test_f1_mean = torch.stack([torch.from_numpy(x['test_f1']) for x in outputs]).mean()
 
         tqdm_dict = {"epoch_test_loss": test_loss_mean, "epoch_test_acc": test_acc_mean, "epoch_test_ham": test_ham_mean, "epoch_test_prec": test_prec_mean, "epoch_test_rec": test_rec_mean, "epoch_test_f1": test_f1_mean}
         wandb.log(tqdm_dict) 
