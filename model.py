@@ -399,6 +399,7 @@ class ProtBertClassifier(pl.LightningModule):
             - Dictionary with metrics to be added to the lightning logger.  
         """
         if not self.trainer.sanity_checking:
+            print(x['val_loss'])
             val_loss_mean = torch.stack([torch.from_numpy(x['val_loss']) for x in outputs]).mean()
             val_acc_mean = torch.stack([torch.from_numpy(x['val_acc']) for x in outputs]).mean()
             val_ham_mean = torch.stack([torch.from_numpy(x['val_ham']) for x in outputs]).mean()
