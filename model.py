@@ -631,7 +631,7 @@ if __name__ == "__main__":
     
     hparams.save_to_file = "data_compiled.pickle"
     model = ProtBertClassifier(hparams)
-    dl = model.train_dataloder()
+    dl = model.train_dataloader()
     one_ds = iter(dl).next()
     inputs, targets = one_ds
 
