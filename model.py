@@ -401,7 +401,7 @@ class ProtBertClassifier(pl.LightningModule):
         """
         if not self.trainer.sanity_checking:
 #             print(outputs[0]['val_loss'])
-            print(outputs)
+            print(outputs, len(outputs))
             val_loss_mean = torch.stack([x['val_loss'] for x in outputs]).mean()
             val_acc_mean = torch.stack([x['val_acc'] for x in outputs]).mean()
             val_ham_mean = torch.stack([x['val_ham'] for x in outputs]).mean()
