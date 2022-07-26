@@ -119,7 +119,7 @@ def _main():
     # 5 INIT SWA CALLBACK
     #  -------------------------------
     # Stochastic Weight Averaging
-    rsummary_callback = pl.callbacks.RichModelSummary() #Not in this PL version
+#     rsummary_callback = pl.callbacks.RichModelSummary() #Not in this PL version
 
     # --------------------------------
     # 6 INIT MISC CALLBACK
@@ -150,7 +150,7 @@ def _main():
         logger=[csv_logger],
         max_epochs=hparams.max_epochs,
         min_epochs=hparams.min_epochs,
-        callbacks = [early_stop_callback, checkpoint_callback, swa_callback, rsummary_callback, tqdmbar_callback, timer_callback],
+        callbacks = [early_stop_callback, checkpoint_callback, swa_callback, tqdmbar_callback, timer_callback],
         precision=hparams.precision,
         amp_backend=hparams.amp_backend,
         deterministic=False,
