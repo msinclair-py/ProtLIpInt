@@ -338,9 +338,9 @@ class ProtBertClassifier(pl.LightningModule):
 #         loss_train = loss_train * targets["target_invalid_lipids"][:,None,:]
         
         y = labels #tensor; binary
-        y_hat = torch.nn.functional.sigmoid(predictions) #tensor; logits -> [0,1]
-        acc, ham, prec, rec, f1 = list(map(lambda func: func(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy()), (accuracy_score, hamming_loss, precision_score, recall_score, f1_score) ))
-        
+        y_hat = torch.sigmoid(predictions).round() #tensor; logits -> [0,1]
+        acc, ham, prec, rec, f1 = list(map(lambda func: func(y.detach().cpu().numpy().astype(int), y_hat.detach().cpu().numpy().astype(int)), (accuracy_score, hamming_loss, precision_score, recall_score, f1_score) ))
+     
         output = {"train_loss": loss_train, "train_acc": acc, "train_ham": ham, "train_prec": prec, "train_rec": rec, "train_f1": f1} #NEVER USE ORDEREDDICT!!!!
         wandb.log(output)
         self.log("train_loss", loss_train, prog_bar=True)
@@ -382,9 +382,9 @@ class ProtBertClassifier(pl.LightningModule):
         loss_val = self.loss(predictions, labels) #BLC
         
         y = labels #tensor; binary
-        y_hat = torch.nn.functional.sigmoid(predictions) #tensor; logits -> [0,1]
-        acc, ham, prec, rec, f1 = list(map(lambda func: func(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy()), (accuracy_score, hamming_loss, precision_score, recall_score, f1_score) ))
-        
+        y_hat = torch.sigmoid(predictions).round() #tensor; logits -> [0,1]
+        acc, ham, prec, rec, f1 = list(map(lambda func: func(y.detach().cpu().numpy().astype(int), y_hat.detach().cpu().numpy().astype(int)), (accuracy_score, hamming_loss, precision_score, recall_score, f1_score) ))
+
         output = {"val_loss": loss_val, "val_acc": acc, "val_ham": ham, "val_prec": prec, "val_rec": rec, "val_f1": f1} #NEVER USE ORDEREDDICT!!!!
         wandb.log(output)
         self.log("val_loss", loss_val, prog_bar=True)
@@ -424,8 +424,8 @@ class ProtBertClassifier(pl.LightningModule):
         loss_test = self.loss(predictions, labels) #BLC
         
         y = labels #tensor; binary
-        y_hat = torch.nn.functional.sigmoid(predictions) #tensor; logits -> [0,1]
-        acc, ham, prec, rec, f1 = list(map(lambda func: func(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy()), (accuracy_score, hamming_loss, precision_score, recall_score, f1_score) ))
+        y_hat = torch.sigmoid(predictions).round() #tensor; logits -> [0,1]
+        acc, ham, prec, rec, f1 = list(map(lambda func: func(y.detach().cpu().numpy().astype(int), y_hat.detach().cpu().numpy().astype(int)), (accuracy_score, hamming_loss, precision_score, recall_score, f1_score) ))
         
         output = {"test_loss": loss_test, "test_acc": acc, "test_ham": ham, "test_prec": prec, "test_rec": rec, "test_f1": f1} #NEVER USE ORDEREDDICT!!!!
         wandb.log(output)
