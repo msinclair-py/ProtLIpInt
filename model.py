@@ -105,7 +105,7 @@ class ProtBertClassifier(pl.LightningModule):
         if self.hparam.loss == "contrastive": 
             self.make_hook()
 
-        wandb.init(project="DL_Sequence_Collab_Matt", entity="hyunp2")
+        wandb.init(project="DL_Sequence_Collab_Matt", entity="hyunp2", group="DDP_runs")
         wandb.watch(self.head)
    
     def make_hook(self, ):
@@ -298,7 +298,7 @@ class ProtBertClassifier(pl.LightningModule):
         
         return predictions, labels
         
-    def loss(self, predictions: dict, targets: dict) -> torch.tensor:
+    def loss(self, predictions: Union[dict, torch.Tensor], targets: Union[dict, torch.Tensor]) -> torch.tensor:
         """
         Computes Loss value according to a loss function.
         :param predictions: model specific output. Must contain a key 'logits' with
@@ -333,22 +333,19 @@ class ProtBertClassifier(pl.LightningModule):
         inputs, targets = batch #Both are tesors
         #print(inputs, targets, "VALUE!!")
         model_out = self.forward(**inputs) #logicts dictionary
-        model_out, targets = self.select_nonspecial(model_out, inputs, targets)
-        loss_train = self.loss(model_out, targets) #BLC
+        predictions, labels = self.select_nonspecial(model_out, inputs, targets)
+        loss_train = self.loss(predictions, labels) #BLC
 #         loss_train = loss_train * targets["target_invalid_lipids"][:,None,:]
         
-        y = targets #tensor; binary
-        y_hat = torch.nn.functional.sigmoid(model_out) #tensor; logits -> [0,1]
+        y = labels #tensor; binary
+        y_hat = torch.nn.functional.sigmoid(predictions) #tensor; logits -> [0,1]
         acc, ham, prec, rec, f1 = list(map(lambda func: func(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy()), (accuracy_score, hamming_loss, precision_score, recall_score, f1_score) ))
         
-        output = {"train_loss": loss_train, "train_acc": train_acc} #NEVER USE ORDEREDDICT!!!!
+        output = {"train_loss": loss_train, "train_acc": acc, "train_ham": ham, "train_prec": prec, "train_rec": rec, "train_f1": f1} #NEVER USE ORDEREDDICT!!!!
         wandb.log(output)
         self.log("train_loss", loss_train, prog_bar=True)
-        self.log("train_acc", train_acc, prog_bar=True)
         
-        #self.loss_log_for_train.append({"train_acc": train_acc})
-
-        return {"loss": loss_train, "train_acc": train_acc}
+        return {"loss": loss_train, "train_acc": acc, "train_ham": ham, "train_prec": prec, "train_rec": rec, "train_f1": f1}
 
     def training_epoch_end(self, outputs: list) -> dict:
         """ Function that takes as input a list of dictionaries returned by the validation_step
@@ -358,19 +355,18 @@ class ProtBertClassifier(pl.LightningModule):
             - Dictionary with metrics to be added to the lightning logger.  
         """
         #outputs = self.loss_log_for_train
-        train_loss_mean = torch.stack([x['train_acc'] for x in outputs]).mean()
-#         train_acc_mean = self.metric_acc.compute()
+        train_loss_mean = torch.stack([x['loss'] for x in outputs]).mean()
+        train_acc_mean = torch.stack([x['train_acc'] for x in outputs]).mean()
+        train_ham_mean = torch.stack([x['train_ham'] for x in outputs]).mean()
+        train_prec_mean = torch.stack([x['train_prec'] for x in outputs]).mean()
+        train_rec_mean = torch.stack([x['train_rec'] for x in outputs]).mean()
+        train_f1_mean = torch.stack([x['train_f1'] for x in outputs]).mean()
 
+        tqdm_dict = {"epoch_train_loss": train_loss_mean, "epoch_train_acc": train_acc_mean, "epoch_train_ham": train_ham_mean, "epoch_train_prec": train_prec_mean, "epoch_train_rec": train_rec_mean, "epoch_train_f1": train_f1_mean}
+        wandb.log(tqdm_dict) 
         self.log("train_loss_mean", train_loss_mean, prog_bar=True)
         self.log("epoch", self.current_epoch)
-
-#         self.log("train_acc_mean", train_acc_mean, prog_bar=True)
-
-#         tqdm_dict = {"epoch_train_loss": train_loss_mean, "epoch_train_acc": train_acc_mean}
-        tqdm_dict = {"epoch_train_loss": train_loss_mean}
-        wandb.log(tqdm_dict)
-        self.metric_acc.reset()    
-
+        
     def on_validation_epoch_start(self, ) -> None:
         self.metric_acc = torchmetrics.Accuracy()
 
@@ -380,21 +376,20 @@ class ProtBertClassifier(pl.LightningModule):
             - dictionary passed to the validation_end function.
         #NEVER USE ORDEREDDICT!!!!
         """
-        inputs, targets = batch
-        model_out = self.forward(**inputs)
-        #print(model_out.size(), targets["labels"].size())
-        loss_val = self.loss(model_out, targets)
-        y = targets["labels"].view(-1,) #B or BL
-        y_hat = model_out["logits"] #B2 or BLC
-        labels_hat = torch.argmax(y_hat, dim=-1).to(y)
-
-        #print(y, labels_hat)
-        val_acc = self.metric_acc(labels_hat.detach().cpu().view(-1), y.detach().cpu().view(-1)) #Must mount tensors to CPU;;;; ALSO, val_acc should be returned!
-
-        output = {"val_loss": loss_val, "val_acc": val_acc} #NEVER USE ORDEREDDICT!!!!
+        inputs, targets = batch #Both are tesors
+        model_out = self.forward(**inputs) #logicts dictionary
+        predictions, labels = self.select_nonspecial(model_out, inputs, targets)
+        loss_val = self.loss(predictions, labels) #BLC
+        
+        y = labels #tensor; binary
+        y_hat = torch.nn.functional.sigmoid(predictions) #tensor; logits -> [0,1]
+        acc, ham, prec, rec, f1 = list(map(lambda func: func(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy()), (accuracy_score, hamming_loss, precision_score, recall_score, f1_score) ))
+        
+        output = {"val_loss": loss_val, "val_acc": acc, "val_ham": ham, "val_prec": prec, "val_rec": rec, "val_f1": f1} #NEVER USE ORDEREDDICT!!!!
         wandb.log(output)
-
-        return output
+        self.log("val_loss", loss_val, prog_bar=True)
+        
+        return {"val_loss": loss_val, "val_acc": acc, "val_ham": ham, "val_prec": prec, "val_rec": rec, "val_f1": f1}
         
     def validation_epoch_end(self, outputs: list) -> dict:
         """ Function that takes as input a list of dictionaries returned by the validation_step
@@ -405,18 +400,15 @@ class ProtBertClassifier(pl.LightningModule):
         """
         if not self.trainer.running_sanity_check:
             val_loss_mean = torch.stack([x['val_loss'] for x in outputs]).mean()
-            # val_acc_mean = torch.stack([x['val_acc'] for x in outputs]).mean()
-#             val_acc_mean = self.metric_acc.compute()
- 
+            val_acc_mean = torch.stack([x['val_acc'] for x in outputs]).mean()
+            val_ham_mean = torch.stack([x['val_ham'] for x in outputs]).mean()
+            val_prec_mean = torch.stack([x['val_prec'] for x in outputs]).mean()
+            val_rec_mean = torch.stack([x['val_rec'] for x in outputs]).mean()
+            val_f1_mean = torch.stack([x['val_f1'] for x in outputs]).mean()
+
+            tqdm_dict = {"epoch_val_loss": val_loss_mean, "epoch_val_acc": val_acc_mean, "epoch_val_ham": val_ham_mean, "epoch_val_prec": val_prec_mean, "epoch_val_rec": val_rec_mean, "epoch_val_f1": val_f1_mean}
+            wandb.log(tqdm_dict) 
             self.log("val_loss_mean", val_loss_mean, prog_bar=True)
-#             self.log("val_acc_mean", torch.tensor(val_acc_mean).to(val_loss_mean), prog_bar=True) #tensor mount for Callback Early stop...https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/callbacks/early_stopping.html#:~:text=def%20_evaluate_stopping_criteria(self%2C%20current%3A%20torch.Tensor)%20%2D%3E%20Tuple%5Bbool%2C%20Optional%5Bstr%5D%5D%3A
-            self.log("epoch", self.current_epoch, prog_bar=True)
-
-#             tqdm_dict = {"epoch_val_loss": val_loss_mean, "epoch_val_acc": val_acc_mean}
-            tqdm_dict = {"epoch_val_loss": val_loss_mean}
-
-            wandb.log(tqdm_dict)
-            self.metric_acc.reset()   
 
     def on_test_epoch_start(self, ) -> None:
         self.metric_acc = torchmetrics.Accuracy()
@@ -426,21 +418,20 @@ class ProtBertClassifier(pl.LightningModule):
         Returns:
             - dictionary passed to the validation_end function.
         """
-        inputs, targets = batch
-        model_out = self.forward(**inputs)
-        loss_test = self.loss(model_out, targets)
-        y = targets["labels"].view(-1,)
-        y_hat = model_out["logits"]
-        labels_hat = torch.argmax(y_hat, dim=-1).to(y)
-        #import pdb; pdb.set_trace()
-
-        test_acc = self.metric_acc(labels_hat.detach().cpu().view(-1,), y.detach().cpu().view(-1)) #Must mount tensors to CPU
+        inputs, targets = batch #Both are tesors
+        model_out = self.forward(**inputs) #logicts dictionary
+        predictions, labels = self.select_nonspecial(model_out, inputs, targets)
+        loss_test = self.loss(predictions, labels) #BLC
         
-        output = {"test_loss": loss_test, "test_acc": test_acc}
+        y = labels #tensor; binary
+        y_hat = torch.nn.functional.sigmoid(predictions) #tensor; logits -> [0,1]
+        acc, ham, prec, rec, f1 = list(map(lambda func: func(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy()), (accuracy_score, hamming_loss, precision_score, recall_score, f1_score) ))
+        
+        output = {"test_loss": loss_test, "test_acc": acc, "test_ham": ham, "test_prec": prec, "test_rec": rec, "test_f1": f1} #NEVER USE ORDEREDDICT!!!!
         wandb.log(output)
-        self.log("test_acc", test_acc, prog_bar=True)
-
-        return output
+        self.log("test_loss", loss_test, prog_bar=True)
+        
+        return {"test_loss": loss_test, "test_acc": acc, "test_ham": ham, "test_prec": prec, "test_rec": rec, "test_f1": f1}
 
     def test_epoch_end(self, outputs: list) -> dict:
         """ Function that takes as input a list of dictionaries returned by the validation_step
@@ -450,12 +441,15 @@ class ProtBertClassifier(pl.LightningModule):
             - Dictionary with metrics to be added to the lightning logger.  
         """
         test_loss_mean = torch.stack([x['test_loss'] for x in outputs]).mean()
-#         test_acc_mean = self.metric_acc.compute()
-#         tqdm_dict = {"epoch_test_loss": test_loss_mean, "epoch_test_acc": test_acc_mean}
-        tqdm_dict = {"epoch_test_loss": test_loss_mean}
+        test_acc_mean = torch.stack([x['test_acc'] for x in outputs]).mean()
+        test_ham_mean = torch.stack([x['test_ham'] for x in outputs]).mean()
+        test_prec_mean = torch.stack([x['test_prec'] for x in outputs]).mean()
+        test_rec_mean = torch.stack([x['test_rec'] for x in outputs]).mean()
+        test_f1_mean = torch.stack([x['test_f1'] for x in outputs]).mean()
 
-        wandb.log(tqdm_dict)
-        self.metric_acc.reset()   
+        tqdm_dict = {"epoch_test_loss": test_loss_mean, "epoch_test_acc": test_acc_mean, "epoch_test_ham": test_ham_mean, "epoch_test_prec": test_prec_mean, "epoch_test_rec": test_rec_mean, "epoch_test_f1": test_f1_mean}
+        wandb.log(tqdm_dict) 
+        self.log("test_loss_mean", test_loss_mean, prog_bar=True)
 
     def on_predict_epoch_start(self, ):
         if self.hparam.loss == "classification":
@@ -595,7 +589,7 @@ class ProtBertClassifier(pl.LightningModule):
         elif stage == "val":
             dataset = val
         elif stage == "test":
-            dataset = val
+            dataset = test
         
         return dataset #torch Dataset
 
