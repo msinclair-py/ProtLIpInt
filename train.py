@@ -37,6 +37,7 @@ def get_args():
     parser.add_argument('--load-data-directory', "-dird", default="/Scr/hyunpark/DL_Sequence_Collab/data", help='This is where data is located...')  
     parser.add_argument('--dataset', type=str, default="yarongef/human_proteome_triplets", help='pass dataset...')  
     parser.add_argument('--json_directory', type=str, default="/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", help='pass dataset with coeffs...')  
+    parser.add_argument('--train_frac', type=float, default=0.8, help='data split')  
 
     #Optimizer related
     parser.add_argument('--max-epochs', default=60, type=int, help='number of epochs max')
