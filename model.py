@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pdb
 from bertviz.bertviz import head_view
-from transformers import BertTokenizer, BertModel, AutoModel, AutoTokenizer, BertConfig, BertForSequenceClassification
+from transformers import BertTokenizer, BertModel, AutoModel, AutoTokenizer, BertConfig, BertForSequenceClassification, get_linear_schedule_with_warmup
 import re, os, tqdm, requests
 from datasets import load_dataset
 import torch.nn as nn
