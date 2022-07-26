@@ -624,12 +624,17 @@ class ProtBertClassifier(pl.LightningModule):
 if __name__ == "__main__":
     from train import get_args
     hparams = get_args()
-    ds = SequenceDataset.from_directory("/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", hparams) #concat dataset instance
-    dl = torch.utils.data.DataLoader(ds, batch_size=15)   
+#     ds = SequenceDataset.from_directory("/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", hparams) #concat dataset instance
+#     dl = torch.utils.data.DataLoader(ds, batch_size=15)   
+#     one_ds = iter(dl).next()
+#     inputs, targets = one_ds
+    
+    hparams.save_to_file = "data_compiled.pickle"
+    model = ProtBertClassifier(hparams)
+    dl = model.train_dataloder()
     one_ds = iter(dl).next()
     inputs, targets = one_ds
-    
-    model = ProtBertClassifier(hparams)
+
     outs = model(**inputs)
 #     print(outs)
     out, tar = model.select_nonspecial(outs, inputs, targets)
