@@ -188,6 +188,8 @@ def _test():
     if hparams.strategy in ["none", None]:
         hparams.strategy = None
         
+    csv_logger = pl.loggers.CSVLogger(save_dir=hparams.load_model_directory)
+
     trainer = pl.Trainer(
         logger=[csv_logger],
         max_epochs=hparams.max_epochs,
