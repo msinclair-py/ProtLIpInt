@@ -210,6 +210,7 @@ def _test():
 
 if __name__ == "__main__":
     hparams = get_args()
+    print(hparams.train)
     
     if hparams.train:
         _main()
