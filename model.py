@@ -1,6 +1,7 @@
 import torch
 import pytorch_lightning as pl
 import transformers
+import collections
 import numpy as np
 import matplotlib.pyplot as plt
 import pdb
@@ -508,8 +509,15 @@ class ProtBertClassifier(pl.LightningModule):
         tqdm_dict = {"epoch_pred_loss": pred_loss_mean, "epoch_pred_acc": pred_acc_mean, "epoch_pred_ham": pred_ham_mean, "epoch_pred_prec": pred_prec_mean, "epoch_pred_rec": pred_rec_mean, "epoch_pred_f1": pred_f1_mean}
         wandb.log(tqdm_dict) 
 #         self.log("test_loss_mean", pred_loss_mean, prog_bar=True)
-        
+
         print(preds, targs)
+        print(collections.Counter(preds), collections.Counter(targs))
+        tbl = wandb.Table(columns=["real", "pred"])
+        hist_pred = np.histogram(preds)
+        hp = wandb.Histogram(np_histogram=hist_pred)
+        hist_targ = np.histogram(targs)
+        ht = wandb.Histogram(np_histogram=hist_targ)
+        tbl.add_data(hp, ht)
         
 #         artifact = wandb.Artifact(name="test", type="torch_model")
 #         path_and_name = os.path.join(self.hparam.load_model_directory, self.hparam.load_model_checkpoint)
