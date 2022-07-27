@@ -169,8 +169,8 @@ def _main():
 
     trainer.fit(model) #New API!
     
-def _test():
-    hparams = get_args()
+def _test(hparams: argparse.ArgumentParser):
+#     hparams = get_args()
 
     pl.seed_everything(hparams.seed)
 
@@ -207,8 +207,11 @@ def _test():
         accelerator=hparams.accelerator,
         auto_select_gpus=True,
     )
-
-    trainer.test(model) #New API!
+    if hparams.train_mode in ["test"]:
+        trainer.test(model) #New API!
+    elif hparams.train_mode in ["pred"]:
+        test_dataloader = model.test_dataloader()
+        trainer.predict(model, dataloaders=test_dataloader)
 
 if __name__ == "__main__":
     hparams = get_args()
