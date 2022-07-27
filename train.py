@@ -71,7 +71,7 @@ def get_args():
     parser.add_argument('--ner-config', '-nc', type=str, default=None, help='NER config')
     parser.add_argument('--augment', type=int, default=0, help='window for data augmentation for AA residues')
     parser.add_argument('--save_to_file', type=str, default=None, help='save dataset')
-    parser.add_argument('--train', actions="store_true")
+    parser.add_argument('--train', action="store_true")
 
     args = parser.parse_args()
     return args
