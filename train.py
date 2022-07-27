@@ -178,6 +178,7 @@ def _test():
     # 1 INIT LIGHTNING MODEL
     # ------------------------
     model = Model.ProtBertClassifier.load_from_checkpoint( os.path.join(hparams.load_model_directory, hparams.load_model_checkpoint), hparam=hparams, strict=True )
+    print("PASS")
     
     if hparams.load_model_checkpoint:
         resume_ckpt = os.path.join(hparams.load_model_directory, hparams.load_model_checkpoint)
@@ -191,7 +192,6 @@ def _test():
         logger=[csv_logger],
         max_epochs=hparams.max_epochs,
         min_epochs=hparams.min_epochs,
-        callbacks = [early_stop_callback, checkpoint_callback, swa_callback, tqdmbar_callback, timer_callback],
         precision=hparams.precision,
         amp_backend=hparams.amp_backend,
         deterministic=False,
