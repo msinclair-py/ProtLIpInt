@@ -484,7 +484,7 @@ class ProtBertClassifier(pl.LightningModule):
         
         output = {"pred_loss": loss_pred, "pred_acc": acc, "pred_ham": ham, "pred_prec": prec, "pred_rec": rec, "pred_f1": f1} #NEVER USE ORDEREDDICT!!!!
         wandb.log(output)
-        self.log("test_loss", loss_pred, prog_bar=True)
+#         self.log("pred_loss", loss_pred, prog_bar=True)
         
         return {"pred_loss": loss_pred, "pred_acc": acc, "pred_ham": ham, "pred_prec": prec, "pred_rec": rec, "pred_f1": f1, "pred": y_hat, "targ": y}
 
