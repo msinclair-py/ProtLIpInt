@@ -495,6 +495,7 @@ class ProtBertClassifier(pl.LightningModule):
         Returns:
             - Dictionary with metrics to be added to the lightning logger.  
         """
+        print(outputs)
         pred_loss_mean = torch.stack([x['pred_loss'] for x in outputs]).mean()
         pred_acc_mean = torch.stack([x['pred_acc'] for x in outputs]).mean()
         pred_ham_mean = torch.stack([x['pred_ham'] for x in outputs]).mean()
