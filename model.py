@@ -516,10 +516,10 @@ class ProtBertClassifier(pl.LightningModule):
         print(collections.Counter(preds), collections.Counter(targs))
         
         tbl = wandb.Table(columns=["id", "hist"])
-        hist_pred = np.histogram(preds)
+#         hist_pred = np.histogram(preds)
 #         hp = wandb.Histogram(np_histogram=hist_pred)
-        tbl.add_data("pred", wandb.Histogram(np_histogram=hist_pred))
-        hist_targ = np.histogram(targs)
+        tbl.add_data("pred", wandb.Histogram(data=preds))
+#         hist_targ = np.histogram(targs)
 #         ht = wandb.Histogram(np_histogram=hist_targ)
         tbl.add_data("targ", wandb.Histogram(np_histogram=hist_targ))
         wandb.log({"histogram": tbl})
