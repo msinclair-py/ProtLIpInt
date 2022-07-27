@@ -503,8 +503,8 @@ class ProtBertClassifier(pl.LightningModule):
         pred_prec_mean = torch.stack([x['pred_prec'] for x in outputs]).mean()
         pred_rec_mean = torch.stack([x['pred_rec'] for x in outputs]).mean()
         pred_f1_mean = torch.stack([x['pred_f1'] for x in outputs]).mean()
-        preds = torch.cat([x['pred'] for x in outputs]).astype(torch.long)
-        targs = torch.cat([x['targ'] for x in outputs]).astype(torch.long)
+        preds = torch.cat([x['pred'] for x in outputs]).type(torch.long)
+        targs = torch.cat([x['targ'] for x in outputs]).type(torch.long)
 
         tqdm_dict = {"epoch_pred_loss": pred_loss_mean, "epoch_pred_acc": pred_acc_mean, "epoch_pred_ham": pred_ham_mean, "epoch_pred_prec": pred_prec_mean, "epoch_pred_rec": pred_rec_mean, "epoch_pred_f1": pred_f1_mean}
         wandb.log(tqdm_dict) 
