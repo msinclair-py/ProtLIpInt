@@ -165,7 +165,6 @@ def _main():
         strategy=hparams.strategy,
         accelerator=hparams.accelerator,
         auto_select_gpus=True,
-        resume_from_checkpoint=resume_ckpt
     )
 
     trainer.fit(model) #New API!
@@ -207,7 +206,6 @@ def _test():
         strategy=hparams.strategy,
         accelerator=hparams.accelerator,
         auto_select_gpus=True,
-        
     )
 
     trainer.test(model) #New API!
