@@ -220,3 +220,10 @@ if __name__ == "__main__":
     else:
         _test()
 #     python -m train --json_directory /Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt/ --save_to_file data_compiled.pickle --load_model_checkpoint epoch=59-train_loss_mean=0.08-val_loss_mean=0.10.ckpt   
+
+
+    #External WANDB
+    # with wandb.init(id="", resume="allow", project="DL_Sequence_Collab_Matt", entity="hyunp2", group="DDP_runs") as run:
+    #     artifact = wandb.Artifact("best.ckpt", "json_data")
+    #     artifact.add_file("output/epoch=59-train_loss_mean=0.08-val_loss_mean=0.10.ckpt")
+#     run.log_artifact(artifact)
