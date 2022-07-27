@@ -517,11 +517,11 @@ class ProtBertClassifier(pl.LightningModule):
         
         tbl = wandb.Table(columns=["id", "hist"])
         hist_pred = np.histogram(preds)
-        hp = wandb.Histogram(np_histogram=hist_pred)
-        tbl.add_data("pred", hp)
+#         hp = wandb.Histogram(np_histogram=hist_pred)
+        tbl.add_data("pred", wandb.Histogram(np_histogram=hist_pred))
         hist_targ = np.histogram(targs)
-        ht = wandb.Histogram(np_histogram=hist_targ)
-        tbl.add_data("targ", ht)
+#         ht = wandb.Histogram(np_histogram=hist_targ)
+        tbl.add_data("targ", wandb.Histogram(np_histogram=hist_targ))
         wandb.log({"histogram": tbl})
 
 #         artifact = wandb.Artifact(name="test", type="torch_model")
