@@ -511,14 +511,18 @@ class ProtBertClassifier(pl.LightningModule):
 #         self.log("test_loss_mean", pred_loss_mean, prog_bar=True)
 
         print(preds, targs)
+        preds = preds.detach().cpu().numpy().reshape(-1,)
+        targs = targs.detach().cpu().numpy().reshape(-1,)
         print(collections.Counter(preds), collections.Counter(targs))
+        
         tbl = wandb.Table(columns=["real", "pred"])
         hist_pred = np.histogram(preds)
         hp = wandb.Histogram(np_histogram=hist_pred)
         hist_targ = np.histogram(targs)
         ht = wandb.Histogram(np_histogram=hist_targ)
         tbl.add_data(hp, ht)
-        
+        wandb.log({"histogram": tbl})
+
 #         artifact = wandb.Artifact(name="test", type="torch_model")
 #         path_and_name = os.path.join(self.hparam.load_model_directory, self.hparam.load_model_checkpoint)
 #         artifact.add_file(str(path_and_name)) #which directory's file to add; when downloading it downloads directory/file
