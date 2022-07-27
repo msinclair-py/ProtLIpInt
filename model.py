@@ -460,30 +460,33 @@ class ProtBertClassifier(pl.LightningModule):
         self.wandb_run.log_artifact(artifact)
 
     def on_predict_epoch_start(self, ):
-        if self.hparam.loss == "classification":
-            self.make_hook() #Get a hook if classification was originally trained
-        if self.hparam.loss == "ner":
-            self.make_hook() #Get a hook if ner was originally trained
-        elif self.hparam.loss == "contrastive": 
-            pass
+#         if self.hparam.loss == "classification":
+#             self.make_hook() #Get a hook if classification was originally trained
+#         if self.hparam.loss == "ner":
+#             self.make_hook() #Get a hook if ner was originally trained
+#         elif self.hparam.loss == "contrastive": 
+#             pass
+        pass
 
     def predict_step(self, batch: tuple, batch_nb: int, *args, **kwargs) -> dict:
         """ Similar to the training step but with the model in eval mode.
         Returns:
             - dictionary passed to the validation_end function.
         """
-        inputs, targets = batch
-        model_out = self.forward(**inputs)
-        loss_test = self.loss(model_out, targets)
-        ground_truth = targets["labels"].view(-1,) #B or (BL)
-        y_hat = model_out["logits"]
-        predictions = y_hat.view(-1, self.num_labels) #B,2 or (BL,C)
-
-        logits = self.fhook["encoded_feats"] #(B,z_dim) or (B,L,z_dim)
-        #assert logits.requires_grad, "it is not differentiable"
-        #import pdb; pdb.set_trace()
+        inputs, targets = batch #Both are tesors
+        model_out = self.forward(**inputs) #logicts dictionary
+        predictions, labels = self.select_nonspecial(model_out, inputs, targets)
+        loss_pred = self.loss(predictions, labels) #BLC
         
-        return {"ground_truth": ground_truth, "predictions": predictions, "last_layer": logits}
+        y = labels #tensor; binary
+        y_hat = torch.sigmoid(predictions).round() #tensor; logits -> [0,1]
+        acc, ham, prec, rec, f1 = list(map(lambda func: torch.from_numpy(np.array([func(y.detach().cpu().numpy().astype(int), y_hat.detach().cpu().numpy().astype(int))])), (accuracy_score, hamming_loss, precision_score, recall_score, f1_score) ))
+        
+        output = {"pred_loss": loss_pred, "pred_acc": acc, "pred_ham": ham, "pred_prec": prec, "pred_rec": rec, "pred_f1": f1} #NEVER USE ORDEREDDICT!!!!
+        wandb.log(output)
+        self.log("test_loss", loss_pred, prog_bar=True)
+        
+        return {"pred_loss": loss_pred, "pred_acc": acc, "pred_ham": ham, "pred_prec": prec, "pred_rec": rec, "pred_f1": f1, "pred": y_hat, "targ": y}
 
     def on_predict_epoch_end(self, outputs: list) -> dict:
         """ Function that takes as input a list of dictionaries returned by the validation_step
@@ -492,18 +495,29 @@ class ProtBertClassifier(pl.LightningModule):
         Returns:
             - Dictionary with metrics to be added to the lightning logger.  
         """
-        ground_truth = torch.cat([x['ground_truth'] for x in outputs[0]], dim=0).contiguous().view(-1,).detach().cpu().numpy() #catted results (B,) or (BL, )
-        b = ground_truth.shape[0]
-        predictions = torch.cat([x['predictions'] for x in outputs[0]], dim=0).contiguous().view(b,-1).detach().cpu().numpy() #catted results ... weird outputs indexing (B, num_labels) or (BL, num_labels)
-        predictions = predictions.argmax(axis = -1) #(B,) or (BL,)
-        class_names = np.arange(self.num_labels).tolist() #(num_labels)
-        logits = torch.cat([x['last_layer'] for x in outputs[0]], dim=0).contiguous().view(b,-1).detach().cpu().numpy() #catted results (B,reduced_dim)
-        logits_ = logits #(B,zdim) or (B,L,zdim)
-        if self.ner: logits_ = logits_[:,0,:] #to (B,zdim) from [CLS]
+        pred_loss_mean = torch.stack([x['pred_loss'] for x in outputs]).mean()
+        pred_acc_mean = torch.stack([x['pred_acc'] for x in outputs]).mean()
+        pred_ham_mean = torch.stack([x['pred_ham'] for x in outputs]).mean()
+        pred_prec_mean = torch.stack([x['pred_prec'] for x in outputs]).mean()
+        pred_rec_mean = torch.stack([x['pred_rec'] for x in outputs]).mean()
+        pred_f1_mean = torch.stack([x['pred_f1'] for x in outputs]).mean()
+        preds = torch.cat([x['pred'] for x in outputs])
+        targs = torch.cat([x['targ'] for x in outputs])
+
+        tqdm_dict = {"epoch_pred_loss": pred_loss_mean, "epoch_pred_acc": pred_acc_mean, "epoch_pred_ham": pred_ham_mean, "epoch_pred_prec": pred_prec_mean, "epoch_pred_rec": pred_rec_mean, "epoch_pred_f1": pred_f1_mean}
+        wandb.log(tqdm_dict) 
+        self.log("test_loss_mean", pred_loss_mean, prog_bar=True)
         
-        self.plot_confusion(ground_truth, predictions, class_names)
-        self.plot_manifold(self.hparam, logits_) #WIP to have residue projection as well!
-        self.plot_ngl(self.hparam)
+        print(preds, targs)
+        
+#         artifact = wandb.Artifact(name="test", type="torch_model")
+#         path_and_name = os.path.join(self.hparam.load_model_directory, self.hparam.load_model_checkpoint)
+#         artifact.add_file(str(path_and_name)) #which directory's file to add; when downloading it downloads directory/file
+#         self.wandb_run.log_artifact(artifact)
+        
+#         self.plot_confusion(ground_truth, predictions, class_names)
+#         self.plot_manifold(self.hparam, logits_) #WIP to have residue projection as well!
+#         self.plot_ngl(self.hparam)
  
     @staticmethod
     def plot_confusion(ground_truth: torch.Tensor, predictions: torch.Tensor, class_names: np.ndarray=np.array([0,1])):
