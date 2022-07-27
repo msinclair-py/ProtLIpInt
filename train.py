@@ -38,6 +38,7 @@ def get_args():
     parser.add_argument('--dataset', type=str, default="yarongef/human_proteome_triplets", help='pass dataset...')  
     parser.add_argument('--json_directory', type=str, default="/Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt", help='pass dataset with coeffs...')  
     parser.add_argument('--train_frac', type=float, default=0.8, help='data split')  
+    parser.add_argument('--train_mode', type=str, default="train", choices=["train","test","pred"], help="which mode for train/infer")
 
     #Optimizer related
     parser.add_argument('--max-epochs', default=60, type=int, help='number of epochs max')
@@ -71,7 +72,6 @@ def get_args():
     parser.add_argument('--ner-config', '-nc', type=str, default=None, help='NER config')
     parser.add_argument('--augment', type=int, default=0, help='window for data augmentation for AA residues')
     parser.add_argument('--save_to_file', type=str, default=None, help='save dataset')
-    parser.add_argument('--train', action="store_true")
 
     args = parser.parse_args()
     return args
@@ -214,12 +214,16 @@ if __name__ == "__main__":
     hparams = get_args()
     print(hparams.train)
     
-    if hparams.train:
+    if hparams.train_mode in ["train"]:
         _main()
-#     python -m train --json_directory /Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt/ --save_to_file data_compiled.pickle    
-    else:
+#     python -m train --json_directory /Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt/ --save_to_file data_compiled.pickle --train_mode train   
+    elif hparams.train_mode in ["test"]:
         _test()
-#     python -m train --json_directory /Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt/ --save_to_file data_compiled.pickle --load_model_checkpoint epoch=59-train_loss_mean=0.08-val_loss_mean=0.10.ckpt   
+#     python -m train --json_directory /Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt/ --save_to_file data_compiled.pickle --load_model_checkpoint epoch=59-train_loss_mean=0.08-val_loss_mean=0.10.ckpt --train_mode test  
+
+    elif hparams.train_mode in ["pred"]:
+        _test()
+#     python -m train --json_directory /Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt/ --save_to_file data_compiled.pickle --load_model_checkpoint epoch=59-train_loss_mean=0.08-val_loss_mean=0.10.ckpt --train_mode pred  
 
 
     #External WANDB
