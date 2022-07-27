@@ -71,6 +71,7 @@ def get_args():
     parser.add_argument('--ner-config', '-nc', type=str, default=None, help='NER config')
     parser.add_argument('--augment', type=int, default=0, help='window for data augmentation for AA residues')
     parser.add_argument('--save_to_file', type=str, default=None, help='save dataset')
+    parser.add_argument('--train', type=bool, default=True, help='train or test')
 
     args = parser.parse_args()
     return args
@@ -167,8 +168,52 @@ def _main():
     )
 
     trainer.fit(model, ckpt_path=resume_ckpt) #New API!
+    
+def _test():
+    hparams = get_args()
 
+    pl.seed_everything(hparams.seed)
+
+    # ------------------------
+    # 1 INIT LIGHTNING MODEL
+    # ------------------------
+    model = Model.ProtBertClassifier.load_from_checkpoint( os.path.join(hparams.load_model_directory, hparams.load_model_checkpoint), hparam=hparams, strict=True )
+    
+    if hparams.load_model_checkpoint:
+        resume_ckpt = os.path.join(hparams.load_model_directory, hparams.load_model_checkpoint)
+    else:
+        resume_ckpt = None
+        
+    if hparams.strategy in ["none", None]:
+        hparams.strategy = None
+        
+    trainer = pl.Trainer(
+        logger=[csv_logger],
+        max_epochs=hparams.max_epochs,
+        min_epochs=hparams.min_epochs,
+        callbacks = [early_stop_callback, checkpoint_callback, swa_callback, tqdmbar_callback, timer_callback],
+        precision=hparams.precision,
+        amp_backend=hparams.amp_backend,
+        deterministic=False,
+        default_root_dir=hparams.load_model_directory,
+        num_sanity_val_steps = hparams.sanity_checks,
+        log_every_n_steps=4,
+        gradient_clip_algorithm="norm",
+        gradient_clip_val=1.,
+        devices=hparams.ngpus,
+        strategy=hparams.strategy,
+        accelerator=hparams.accelerator,
+        auto_select_gpus=True
+    )
+
+    trainer.test(model) #New API!
 
 if __name__ == "__main__":
-    _main()
-    #CUDA_VISIBLE_DEVICES=0 python main.py -ls 0.1 -b 512 -ckpt epoch=4-val_loss=0.30-val_acc=0.94.ckpt
+    hparams = get_args()
+    
+    if hparams.train:
+        _main()
+#     python -m train --json_directory /Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt/ --save_to_file data_compiled.pickle    
+    else:
+        _test()
+#     python -m train --json_directory /Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt/ --save_to_file data_compiled.pickle --load_model_checkpoint epoch=59-train_loss_mean=0.08-val_loss_mean=0.10.ckpt   
