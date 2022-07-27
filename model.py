@@ -105,7 +105,7 @@ class ProtBertClassifier(pl.LightningModule):
         if self.hparam.loss == "contrastive": 
             self.make_hook()
 
-        wandb.init(project="DL_Sequence_Collab_Matt", entity="hyunp2", group="DDP_runs")
+        self.wandb_run = wandb.init(project="DL_Sequence_Collab_Matt", entity="hyunp2", group="DDP_runs")
         wandb.watch(self.head)
    
     def make_hook(self, ):
@@ -453,6 +453,11 @@ class ProtBertClassifier(pl.LightningModule):
         tqdm_dict = {"epoch_test_loss": test_loss_mean, "epoch_test_acc": test_acc_mean, "epoch_test_ham": test_ham_mean, "epoch_test_prec": test_prec_mean, "epoch_test_rec": test_rec_mean, "epoch_test_f1": test_f1_mean}
         wandb.log(tqdm_dict) 
         self.log("test_loss_mean", test_loss_mean, prog_bar=True)
+        
+        artifact = wandb.Artifact(name="test", type="torch_model")
+        path_and_name = os.path.join(self.hparam.load_model_directory, self.hparam.load_model_checkpoint)
+        artifact.add_file(str(path_and_name)) #which directory's file to add; when downloading it downloads directory/file
+        self.wandb_run.log_artifact(artifact)
 
     def on_predict_epoch_start(self, ):
         if self.hparam.loss == "classification":
