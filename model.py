@@ -507,7 +507,7 @@ class ProtBertClassifier(pl.LightningModule):
 
         tqdm_dict = {"epoch_pred_loss": pred_loss_mean, "epoch_pred_acc": pred_acc_mean, "epoch_pred_ham": pred_ham_mean, "epoch_pred_prec": pred_prec_mean, "epoch_pred_rec": pred_rec_mean, "epoch_pred_f1": pred_f1_mean}
         wandb.log(tqdm_dict) 
-        self.log("test_loss_mean", pred_loss_mean, prog_bar=True)
+#         self.log("test_loss_mean", pred_loss_mean, prog_bar=True)
         
         print(preds, targs)
         
