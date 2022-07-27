@@ -225,7 +225,7 @@ if __name__ == "__main__":
 #     python -m train --json_directory /Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt/ --save_to_file data_compiled.pickle --load_model_checkpoint epoch=59-train_loss_mean=0.08-val_loss_mean=0.10.ckpt --train_mode test  
 
     elif hparams.train_mode in ["pred"]:
-        _test()
+        _test(hparams)
 #     python -m train --json_directory /Scr/hyunpark/DL_Sequence_Collab/ProtLIpInt/ --save_to_file data_compiled.pickle --load_model_checkpoint epoch=59-train_loss_mean=0.08-val_loss_mean=0.10.ckpt --train_mode pred  
 
 
