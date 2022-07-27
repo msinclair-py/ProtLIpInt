@@ -212,7 +212,7 @@ def _test():
 
 if __name__ == "__main__":
     hparams = get_args()
-    print(hparams.train)
+    print(hparams.train_mode)
     
     if hparams.train_mode in ["train"]:
         _main()
