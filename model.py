@@ -530,7 +530,7 @@ class ProtBertClassifier(pl.LightningModule):
 #         self.wandb_run.log_artifact(artifact)
 
         class_names = ["0", "1"]
-        self.plot_confusion(targs, preds, class_names)
+        self.plot_confusion(targs, torch.nn.functional.one_hot(preds), class_names)
 #         self.plot_manifold(self.hparam, logits_) #WIP to have residue projection as well!
 #         self.plot_ngl(self.hparam)
  
