@@ -84,7 +84,7 @@ def _main():
     # ------------------------
     # 1 INIT LIGHTNING MODEL
     # ------------------------
-    model = Model.ProtBertClassifier(hparams)
+    model = Model.ProtBertClassifier.load_from_checkpoint( os.path.join(hparams.load_model_directory, hparams.load_model_checkpoint), hparam=hparams, strict=True ) if hparams.load_model_checkpoint else Model(hparams)
 
     # ------------------------
     # 2 INIT EARLY STOPPING
@@ -167,7 +167,7 @@ def _main():
         auto_select_gpus=True
     )
 
-    trainer.fit(model, ckpt_path=resume_ckpt) #New API!
+    trainer.fit(model) #New API!
     
 def _test():
     hparams = get_args()
