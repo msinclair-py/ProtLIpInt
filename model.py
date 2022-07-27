@@ -503,8 +503,8 @@ class ProtBertClassifier(pl.LightningModule):
         pred_prec_mean = torch.stack([x['pred_prec'] for x in outputs]).mean()
         pred_rec_mean = torch.stack([x['pred_rec'] for x in outputs]).mean()
         pred_f1_mean = torch.stack([x['pred_f1'] for x in outputs]).mean()
-        preds = torch.cat([x['pred'] for x in outputs])
-        targs = torch.cat([x['targ'] for x in outputs])
+        preds = torch.cat([x['pred'] for x in outputs]).astype(torch.long)
+        targs = torch.cat([x['targ'] for x in outputs]).astype(torch.long)
 
         tqdm_dict = {"epoch_pred_loss": pred_loss_mean, "epoch_pred_acc": pred_acc_mean, "epoch_pred_ham": pred_ham_mean, "epoch_pred_prec": pred_prec_mean, "epoch_pred_rec": pred_rec_mean, "epoch_pred_f1": pred_f1_mean}
         wandb.log(tqdm_dict) 
@@ -515,21 +515,22 @@ class ProtBertClassifier(pl.LightningModule):
         targs = targs.detach().cpu().numpy().reshape(-1,)
         print(collections.Counter(preds), collections.Counter(targs))
         
-        tbl = wandb.Table(columns=["id", "hist"])
+#         tbl = wandb.Table(columns=["id", "hist"])
 #         hist_pred = np.histogram(preds)
 #         hp = wandb.Histogram(np_histogram=hist_pred)
-        tbl.add_data("pred", wandb.Histogram(data=preds))
+#         tbl.add_data("pred", wandb.Histogram(data=preds))
 #         hist_targ = np.histogram(targs)
 #         ht = wandb.Histogram(np_histogram=hist_targ)
-        tbl.add_data("targ", wandb.Histogram(np_histogram=hist_targ))
-        wandb.log({"histogram": tbl})
+#         tbl.add_data("targ", wandb.Histogram(np_histogram=hist_targ))
+
 
 #         artifact = wandb.Artifact(name="test", type="torch_model")
 #         path_and_name = os.path.join(self.hparam.load_model_directory, self.hparam.load_model_checkpoint)
 #         artifact.add_file(str(path_and_name)) #which directory's file to add; when downloading it downloads directory/file
 #         self.wandb_run.log_artifact(artifact)
-        
-#         self.plot_confusion(ground_truth, predictions, class_names)
+
+        class_names = ["0", "1"]
+        self.plot_confusion(targs, preds, class_names)
 #         self.plot_manifold(self.hparam, logits_) #WIP to have residue projection as well!
 #         self.plot_ngl(self.hparam)
  
