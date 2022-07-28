@@ -515,7 +515,8 @@ class ProtBertClassifier(pl.LightningModule):
         targs = targs.detach().cpu().numpy().reshape(-1,)
         print(collections.Counter(preds), collections.Counter(targs))
         
-#         tbl = wandb.Table(columns=["id", "hist"])
+#         tbl = wandb.Table(columns=["id", "0", "1"])
+        
 #         hist_pred = np.histogram(preds)
 #         hp = wandb.Histogram(np_histogram=hist_pred)
 #         tbl.add_data("pred", wandb.Histogram(data=preds))
@@ -532,8 +533,8 @@ class ProtBertClassifier(pl.LightningModule):
         class_names = np.arange(max(targs)).tolist()
 #         import sklearn.preprocessing
 #         self.plot_confusion(targs, sklearn.preprocessing.OneHotEncoder().fit_transform(preds.reshape(-1,1)), class_names)
-        print(torch.from_numpy(targs).unique(), torch.nn.functional.one_hot(torch.from_numpy(preds)).unique())
-        self.plot_confusion(torch.from_numpy(targs), torch.from_numpy(preds), class_names)
+#         print(torch.from_numpy(targs).unique(), torch.nn.functional.one_hot(torch.from_numpy(preds)).unique())
+        self.plot_confusion(targs, preds, class_names)
 #         self.plot_manifold(self.hparam, logits_) #WIP to have residue projection as well!
 #         self.plot_ngl(self.hparam)
  
