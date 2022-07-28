@@ -520,6 +520,7 @@ class ProtBertClassifier(pl.LightningModule):
         df_targs = pd.DataFrame([dict(collections.Counter(targs))])
         df_preds = pd.DataFrame([dict(collections.Counter(preds))])
         output = pd.concat([output, df_targs, df_preds], ignore_index=True)
+        print(output.index)
         output.index.names = ["Targets", "Predictions"]
         tbl = wandb.Table(dataframe=output)
         wandb.log({"counter": tbl})
