@@ -528,18 +528,18 @@ class ProtBertClassifier(pl.LightningModule):
 #         hist_targ = np.histogram(targs)
 #         ht = wandb.Histogram(np_histogram=hist_targ)
 #         tbl.add_data("targ", wandb.Histogram(np_histogram=hist_targ))
-        wanbd.log({"counter", tbl})
+        wandb.log({"counter", tbl})
 
 #         artifact = wandb.Artifact(name="test", type="torch_model")
 #         path_and_name = os.path.join(self.hparam.load_model_directory, self.hparam.load_model_checkpoint)
 #         artifact.add_file(str(path_and_name)) #which directory's file to add; when downloading it downloads directory/file
 #         self.wandb_run.log_artifact(artifact)
 
-        class_names = np.arange(max(targs)).tolist()
+#         class_names = np.arange(max(targs)).tolist()
 #         import sklearn.preprocessing
 #         self.plot_confusion(targs, sklearn.preprocessing.OneHotEncoder().fit_transform(preds.reshape(-1,1)), class_names)
 #         print(torch.from_numpy(targs).unique(), torch.nn.functional.one_hot(torch.from_numpy(preds)).unique())
-        self.plot_confusion(targs, preds, class_names)
+#         self.plot_confusion(targs, preds, class_names)
 #         self.plot_manifold(self.hparam, logits_) #WIP to have residue projection as well!
 #         self.plot_ngl(self.hparam)
  
