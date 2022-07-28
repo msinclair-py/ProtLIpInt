@@ -515,7 +515,11 @@ class ProtBertClassifier(pl.LightningModule):
         targs = targs.detach().cpu().numpy().reshape(-1,)
         print(collections.Counter(preds), collections.Counter(targs))
         
-#         tbl = wandb.Table(columns=["id", "0", "1"])
+        output = pd.DataFrame()
+        df_targs = pd.DataFrame([dict(collections.Counter(targs))])
+        df_preds = pd.DataFrame([dict(collections.Counter(preds))])
+        output = pd.concat([output, df_targs, df_preds], ignore_index=True)
+        tbl = wandb.Table(dataframe=output)
         
 #         hist_pred = np.histogram(preds)
 #         hp = wandb.Histogram(np_histogram=hist_pred)
@@ -523,7 +527,7 @@ class ProtBertClassifier(pl.LightningModule):
 #         hist_targ = np.histogram(targs)
 #         ht = wandb.Histogram(np_histogram=hist_targ)
 #         tbl.add_data("targ", wandb.Histogram(np_histogram=hist_targ))
-
+        wanbd.log({"counter", tbl})
 
 #         artifact = wandb.Artifact(name="test", type="torch_model")
 #         path_and_name = os.path.join(self.hparam.load_model_directory, self.hparam.load_model_checkpoint)
