@@ -532,7 +532,7 @@ class ProtBertClassifier(pl.LightningModule):
         class_names = ["0", "1"]
         import sklearn.preprocessing
 #         self.plot_confusion(targs, sklearn.preprocessing.OneHotEncoder().fit_transform(preds.reshape(-1,1)), class_names)
-          self.plot_confusion(targs, torch.nn.functional.one_hot(torch.from_numpy(preds)), class_names)
+        self.plot_confusion(targs, torch.nn.functional.one_hot(torch.from_numpy(preds)), class_names)
 #         self.plot_manifold(self.hparam, logits_) #WIP to have residue projection as well!
 #         self.plot_ngl(self.hparam)
  
