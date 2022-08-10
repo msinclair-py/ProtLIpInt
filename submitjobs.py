@@ -127,8 +127,9 @@ with open('submitter.txt','w') as outfile:
         if isinstance(submissions[_dir][0], list):
             for submission in submissions[_dir]:
                 submit = qsub + submission
-                print(f'Submitting: {submit}.....')
-                subprocess.run(submit)
+                outfile.write(' '.join(submit))
+                #print(f'Submitting: {submit}.....')
+                #subprocess.run(submit)
         else:
             print('ERR OAR!')
 

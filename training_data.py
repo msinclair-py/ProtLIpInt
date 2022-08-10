@@ -128,7 +128,7 @@ class LipidContacts(AnalysisBase):
         reside basis
         '''
 
-        lipids_of_interest = ['PC','PE','PG','PI','PS','PA','CL','SM','CHOL']
+        lipids_of_interest = ['PC','PE','PG','PI','PS','PA','CL','SM','CHOL','OTHER']
         inter = {key:{lip:{} for lip in lipids_of_interest} for key in tm_residues}
 
         return inter
@@ -150,15 +150,17 @@ class LipidContacts(AnalysisBase):
 
     def map_lipids(self):
         mapping = dict()
-        normal = ['PS','PC','PA','PE','PG']
+        normal = ['PC','PE','PG','PI','PS','PA']
         lips = u.select_atoms('segid MEMB').residues
 
         for (ID, NAME) in zip(lips.ix, lips.resnames):
-            if any([True if hg in NAME else False for hg in normal]):
-                mapping.update({ID:NAME[-2:]})
+            filter_ = [True if hg in NAME[2:] else False for hg in normal]
+            if any(filter_):
+                HG = [d for d, s in zip(normal, filter_) if s].pop()
+                mapping.update({ID: HG})
             elif 'CL' in NAME:
                 mapping.update({ID:'CL'})
-            elif 'SM' in NAME:
+            elif 'SM' == NAME[:-2]:
                 mapping.update({ID:'SM'})
             elif NAME=='CHL1':
                 mapping.update({ID:'CHOL'})
